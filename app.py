@@ -3,13 +3,21 @@ from config import Config
 from forms.login_form import LoginForm
 from forms.register_form import RegisterForm
 from forms.contact_form import ContactForm
+from forms.classroom_form import ClassroomForm
 from models.user import db, User
+from models.classroom import Classroom
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from utils.decorators import admin_required, teacher_required, student_required
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Initialize the database
 db.init_app(app)
+
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -27,19 +35,25 @@ def index():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.get_by_username(form.username.data)
+        user = User.get_by_user_id(form.user_id.data)
         if user and user.check_password(form.password.data):
             login_user(user)
             next_page = request.args.get('next')
             return redirect(next_page or url_for('dashboard'))
-        flash('Invalid username or password', 'danger')
+        flash('Invalid user ID or password', 'danger')
     return render_template('login.html', form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data, role=form.role.data)
+        user = User(
+            user_id=form.user_id.data, 
+            email=form.email.data, 
+            role=form.role.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data
+        )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -102,6 +116,69 @@ def contact():
         flash('Message sent successfully!', 'success')
         return redirect(url_for('index'))
     return render_template('contact.html', form=form)
+
+@app.route('/classrooms')
+@login_required
+@admin_required
+def classrooms():
+    classrooms = Classroom.get_all_classrooms()
+    return render_template('classrooms.html', classrooms=classrooms)
+
+@app.route('/classrooms/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_classroom():
+    form = ClassroomForm()
+    if form.validate_on_submit():
+        Classroom.add_classroom(name=form.name.data, academic_year=form.academic_year.data)
+        flash('Classroom added successfully!', 'success')
+        return redirect(url_for('classrooms'))
+    return render_template('add_classroom.html', form=form)
+
+@app.route('/classrooms/edit/<int:classroom_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_classroom(classroom_id):
+    classroom = Classroom.get_by_id(classroom_id)
+    if not classroom:
+        flash('Classroom not found', 'danger')
+        return redirect(url_for('classrooms'))
+    form = ClassroomForm(obj=classroom)
+    if form.validate_on_submit():
+        Classroom.update_classroom(classroom_id=classroom_id, name=form.name.data, academic_year=form.academic_year.data)
+        flash('Classroom updated successfully!', 'success')
+        return redirect(url_for('classrooms'))
+    return render_template('edit_classroom.html', form=form)
+
+@app.route('/classrooms/delete/<int:classroom_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_classroom(classroom_id):
+    success = Classroom.delete_classroom(classroom_id)
+    if success:
+        flash('Classroom deleted successfully', 'success')
+    else:
+        flash('Failed to delete classroom', 'danger')
+    return redirect(url_for('classrooms'))
+
+@app.route('/classrooms/<int:classroom_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def view_classroom(classroom_id):
+    classroom = Classroom.get_by_id(classroom_id)
+    if not classroom:
+        flash('Classroom not found', 'danger')
+        return redirect(url_for('classrooms'))
+    students_not_in_class = User.get_students_not_in_class(classroom_id)
+    if request.method == 'POST':
+        student_id = request.form.get('student_id')
+        student = User.get_by_id(student_id)
+        if student and student.role == 'student':
+            student.classroom_id = classroom_id
+            db.session.commit()
+            flash('Student added to classroom successfully!', 'success')
+            return redirect(url_for('view_classroom', classroom_id=classroom_id))
+    return render_template('view_classroom.html', classroom=classroom, students_not_in_class=students_not_in_class)
 
 if __name__ == '__main__':
     with app.app_context():

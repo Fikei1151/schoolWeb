@@ -3,7 +3,7 @@
     <h1>Our Students</h1>
     <ul class="list-group">
         {% for student in students %}
-            <li class="list-group-item">{{ student.username }} - {{ student.role }}</li>
+            <li class="list-group-item">{{ student.user_id }} - {{ student.role }}</li>
         {% endfor %}
     </ul>
 {% endblock %}
