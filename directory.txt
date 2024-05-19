@@ -1,0 +1,49 @@
+school_website/
+│
+├── app.py
+├── config.py
+├── requirements.txt
+├── run.py
+│
+├── static/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   ├── login.html
+│   ├── register.html
+│   ├── dashboard.html
+│   ├── students.html
+│   ├── about.html
+│   ├── contact.html
+│   ├── classrooms.html
+│   ├── view_classroom.html
+│   ├── add_classroom.html
+│   └── admin.html
+│
+├── forms/
+│   ├── login_form.py
+│   ├── register_form.py
+│   ├── contact_form.py
+│   └── classroom_form.py
+│
+├── models/
+│   ├── user.py
+│   └── classroom.py
+│
+├── utils/
+│   └── decorators.py
+│
+├── migrations/
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions/
+│       
+│      
+│
+└── venv/

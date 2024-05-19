@@ -1,13 +1,16 @@
 from models.user import db
 
+# ตารางความสัมพันธ์ many-to-many ระหว่าง Classroom และ Course
+classroom_courses = db.Table('classroom_courses',
+    db.Column('classroom_id', db.Integer, db.ForeignKey('classroom.id'), primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
+)
+
 class Classroom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), index=True, unique=True)
-    academic_year = db.Column(db.String(4), index=True)
+    name = db.Column(db.String(64), nullable=False)
+    academic_year = db.Column(db.String(64), nullable=False)
     students = db.relationship('User', backref='classroom', lazy='dynamic')
-
-    def __repr__(self):
-        return f'<Classroom {self.name}>'
 
     @staticmethod
     def get_all_classrooms():
@@ -19,19 +22,9 @@ class Classroom(db.Model):
 
     @staticmethod
     def add_classroom(name, academic_year):
-        classroom = Classroom(name=name, academic_year=academic_year)
-        db.session.add(classroom)
+        new_classroom = Classroom(name=name, academic_year=academic_year)
+        db.session.add(new_classroom)
         db.session.commit()
-        return classroom
-
-    @staticmethod
-    def delete_classroom(classroom_id):
-        classroom = Classroom.query.get(classroom_id)
-        if classroom:
-            db.session.delete(classroom)
-            db.session.commit()
-            return True
-        return False
 
     @staticmethod
     def update_classroom(classroom_id, name, academic_year):
@@ -42,3 +35,12 @@ class Classroom(db.Model):
             db.session.commit()
             return classroom
         return None
+
+    @staticmethod
+    def delete_classroom(classroom_id):
+        classroom = Classroom.query.get(classroom_id)
+        if classroom:
+            db.session.delete(classroom)
+            db.session.commit()
+            return True
+        return False

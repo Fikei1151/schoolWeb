@@ -3,6 +3,19 @@
     <h1>Register</h1>
     <form method="POST">
         {{ form.hidden_tag() }}
+
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                {% for field, errors in form.errors.items() %}
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         <div class="form-group">
             {{ form.user_id.label(class="form-label") }} 
             {{ form.user_id(class="form-control") }}
