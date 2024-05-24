@@ -41,6 +41,11 @@
                                 <a class="nav-link" href="{{ url_for('courses') }}">Courses</a>
                             </li>
                         {% endif %}
+                        {% if current_user.role == 'teacher' and current_user.classroom_teacher %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('class_me') }}">Class Me</a>
+                        </li>
+                         {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                         </li>

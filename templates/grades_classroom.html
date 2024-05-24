@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Grades for Classroom: {{ classroom.name }}</h1>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in classroom.students %}
+                <tr>
+                    <td>{{ student.user_id }}</td>
+                    <td>{{ student.first_name }}</td>
+                    <td>{{ student.last_name }}</td>
+                    <td>
+                        <a href="{{ url_for('view_student_grades', classroom_id=classroom.id, student_id=student.id) }}" class="btn btn-primary">Enter/Edit Grades</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

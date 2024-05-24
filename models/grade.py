@@ -2,15 +2,16 @@ from models.user import db
 
 class Grade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Float, nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    grade = db.Column(db.String(2), nullable=False)
+    course = db.relationship('Course', backref=db.backref('grades', lazy=True))
 
-    student = db.relationship('User', backref='grades')
-    course = db.relationship('Course', backref='grades')
-
-    def __repr__(self):
-        return f'<Grade {self.grade} for {self.student.username} in {self.course.name}>'
+    @staticmethod
+    def add_grade(value, student_id, course_id):
+        new_grade = Grade(value=value, student_id=student_id, course_id=course_id)
+        db.session.add(new_grade)
+        db.session.commit()
 
     @staticmethod
     def get_grades_by_student(student_id):
@@ -21,17 +22,13 @@ class Grade(db.Model):
         return Grade.query.filter_by(course_id=course_id).all()
 
     @staticmethod
-    def add_grade(student_id, course_id, grade):
-        new_grade = Grade(student_id=student_id, course_id=course_id, grade=grade)
-        db.session.add(new_grade)
-        db.session.commit()
-
-    @staticmethod
-    def update_grade(grade_id, grade):
+    def update_grade(grade_id, value):
         grade = Grade.query.get(grade_id)
         if grade:
-            grade.grade = grade
+            grade.value = value
             db.session.commit()
+            return grade
+        return None
 
     @staticmethod
     def delete_grade(grade_id):
@@ -39,3 +36,5 @@ class Grade(db.Model):
         if grade:
             db.session.delete(grade)
             db.session.commit()
+            return True
+        return False

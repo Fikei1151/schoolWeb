@@ -2,6 +2,23 @@
 {% block content %}
     <h1>Classroom: {{ classroom.name }}</h1>
     <p>Academic Year: {{ classroom.academic_year }}</p>
+
+    <h2>Teacher</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="teacher_id">Select Teacher</label>
+            <select class="form-control" id="teacher_id" name="teacher_id">
+                <option value="">Select a teacher</option>
+                {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}" {% if teacher.id == classroom.teacher_id %}selected{% endif %}>{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Assign Teacher</button>
+        </div>
+    </form>
+
     <h2>Students</h2>
     <ul class="list-group mt-3">
         {% for student in classroom.students %}
@@ -13,7 +30,7 @@
             </li>
         {% endfor %}
     </ul>
-
+    
     <h2>Add Student</h2>
     <form method="POST">
         <div class="form-group">
@@ -28,7 +45,7 @@
             <button type="submit" class="btn btn-primary">Add Student</button>
         </div>
     </form>
-
+    
     <h2>Courses</h2>
     <ul class="list-group mt-3">
         {% for course in classroom.courses %}
@@ -40,7 +57,7 @@
             </li>
         {% endfor %}
     </ul>
-
+    
     <h2>Add Course</h2>
     <form method="POST" action="{{ url_for('add_course_to_classroom', classroom_id=classroom.id) }}">
         <div class="form-group">
@@ -55,6 +72,11 @@
             <button type="submit" class="btn btn-primary">Add Course</button>
         </div>
     </form>
+
+    <a href="{{ url_for('grades_classroom', classroom_id=classroom.id) }}" class="btn btn-secondary mt-3">เกรด</a>
+
+
+
 {% endblock %}
 
 {% block scripts %}
@@ -69,6 +91,10 @@
             });
             $('#course_id').select2({
                 placeholder: 'Select a course',
+                allowClear: true
+            });
+            $('#teacher_id').select2({
+                placeholder: 'Select a teacher',
                 allowClear: true
             });
         });

@@ -5,9 +5,11 @@ from forms.register_form import RegisterForm
 from forms.contact_form import ContactForm
 from forms.classroom_form import ClassroomForm
 from forms.course_form import CourseForm
+from forms.grade_form import GradeForm
 from models.user import db, User
 from models.classroom import Classroom
-from models.course import Course, classroom_courses
+from models.course import Course
+from models.grade import Grade
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from utils.decorators import admin_required, teacher_required, student_required
 from flask_migrate import Migrate
@@ -132,9 +134,17 @@ def classrooms():
 def add_classroom():
     form = ClassroomForm()
     if form.validate_on_submit():
-        Classroom.add_classroom(name=form.name.data, academic_year=form.academic_year.data)
+        print("Form validated successfully")  # ตรวจสอบว่าฟอร์มถูก validate
+        print(f"Name: {form.name.data}, Academic Year: {form.academic_year.data}")  # พิมพ์ค่าเพื่อดูใน console
+        new_classroom = Classroom(name=form.name.data, academic_year=form.academic_year.data)
+        db.session.add(new_classroom)
+        db.session.commit()
         flash('Classroom added successfully!', 'success')
         return redirect(url_for('classrooms'))
+    else:
+        print("Form validation failed")  # ตรวจสอบว่าฟอร์มไม่ผ่าน validation
+        print(form.errors)  # พิมพ์ข้อผิดพลาดในฟอร์ม
+        flash('Failed to add classroom. Please check the form.', 'danger')
     return render_template('add_classroom.html', form=form)
 
 @app.route('/classrooms/edit/<int:classroom_id>', methods=['GET', 'POST'])
@@ -147,10 +157,24 @@ def edit_classroom(classroom_id):
         return redirect(url_for('classrooms'))
     form = ClassroomForm(obj=classroom)
     if form.validate_on_submit():
-        Classroom.update_classroom(classroom_id=classroom_id, name=form.name.data, academic_year=form.academic_year.data)
+        classroom.name = form.name.data
+        classroom.academic_year = form.academic_year.data
+        classroom.teacher_id = form.teacher_id.data
+        db.session.commit()
         flash('Classroom updated successfully!', 'success')
         return redirect(url_for('classrooms'))
     return render_template('edit_classroom.html', form=form)
+
+@app.route('/class_me')
+@login_required
+@teacher_required
+def class_me():
+    classroom = Classroom.query.filter_by(teacher_id=current_user.id).first()
+    if not classroom:
+        flash('You are not assigned to any classroom', 'danger')
+        return redirect(url_for('index'))
+    return redirect(url_for('grades_classroom', classroom_id=classroom.id))
+
 
 @app.route('/classrooms/delete/<int:classroom_id>', methods=['POST'])
 @login_required
@@ -162,7 +186,6 @@ def delete_classroom(classroom_id):
     else:
         flash('Failed to delete classroom', 'danger')
     return redirect(url_for('classrooms'))
-
 @app.route('/classrooms/<int:classroom_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -174,10 +197,16 @@ def view_classroom(classroom_id):
     
     courses_not_in_class = Course.query.filter(~Course.classrooms.any(id=classroom_id)).all()
     students_not_in_class = User.query.filter((User.classroom_id != classroom_id) | (User.classroom_id == None)).all()
+    teachers = User.query.filter_by(role='teacher').all()
     
     if request.method == 'POST':
+        teacher_id = request.form.get('teacher_id')
         student_id = request.form.get('student_id')
         course_id = request.form.get('course_id')
+        if teacher_id:
+            classroom.teacher_id = teacher_id
+            db.session.commit()
+            flash('Teacher assigned to classroom successfully!', 'success')
         if student_id:
             student = db.session.get(User, student_id)
             if student and student.role == 'student':
@@ -192,7 +221,7 @@ def view_classroom(classroom_id):
                 flash('Course added to classroom successfully!', 'success')
         return redirect(url_for('view_classroom', classroom_id=classroom_id))
     
-    return render_template('view_classroom.html', classroom=classroom, students_not_in_class=students_not_in_class, courses_not_in_class=courses_not_in_class)
+    return render_template('view_classroom.html', classroom=classroom, students_not_in_class=students_not_in_class, courses_not_in_class=courses_not_in_class, teachers=teachers)
 
 @app.route('/classrooms/<int:classroom_id>/remove_student/<int:student_id>', methods=['POST'])
 @login_required
@@ -221,12 +250,13 @@ def remove_course(classroom_id, course_id):
         flash('Failed to remove course from classroom', 'danger')
     return redirect(url_for('view_classroom', classroom_id=classroom_id))
 
-@app.route('/courses')
+@app.route('/courses', methods=['GET'])
 @login_required
 @admin_required
 def courses():
     courses = Course.get_all_courses()
     return render_template('courses.html', courses=courses)
+
 
 @app.route('/courses/add', methods=['GET', 'POST'])
 @login_required
@@ -237,6 +267,8 @@ def add_course():
         Course.add_course(name=form.name.data, code=form.code.data, credit=form.credit.data, description=form.description.data)
         flash('Course added successfully!', 'success')
         return redirect(url_for('courses'))
+    else:
+        flash('Failed to add course. Please check the form.', 'danger')
     return render_template('add_course.html', form=form)
 
 @app.route('/courses/edit/<int:course_id>', methods=['GET', 'POST'])
@@ -279,6 +311,113 @@ def add_course_to_classroom(classroom_id):
     else:
         flash('Failed to add course to classroom', 'danger')
     return redirect(url_for('view_classroom', classroom_id=classroom_id))
+
+@app.route('/classrooms/<int:classroom_id>/grades')
+@login_required
+@admin_required
+def grades_classroom(classroom_id):
+    classroom = Classroom.get_by_id(classroom_id)
+    if not classroom:
+        flash('Classroom not found', 'danger')
+        return redirect(url_for('classrooms'))
+    
+    return render_template('grades_classroom.html', classroom=classroom)
+
+@app.route('/classrooms/<int:classroom_id>/grades/<int:student_id>', methods=['GET'])
+@login_required
+@admin_required
+def view_student_grades(classroom_id, student_id):
+    classroom = Classroom.get_by_id(classroom_id)
+    student = User.get_by_id(student_id)
+    if not classroom or not student:
+        flash('Classroom or Student not found', 'danger')
+        return redirect(url_for('grades_classroom', classroom_id=classroom_id))
+
+    grades = Grade.query.filter_by(student_id=student_id).all()
+    grades_dict = {grade.course_id: grade for grade in grades}
+
+    return render_template('student_grades.html', classroom=classroom, student=student, grades_dict=grades_dict)
+
+@app.route('/classrooms/<int:classroom_id>/edit_grade/<int:course_id>/<int:student_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_grade(classroom_id, course_id, student_id):
+    classroom = Classroom.get_by_id(classroom_id)
+    grades = Grade.query.filter_by(student_id=student_id).all()
+    grades_dict = {grade.course_id: grade for grade in grades}
+    if not classroom:
+        flash('Classroom not found', 'danger')
+        return redirect(url_for('classrooms'))
+    
+    course = Course.get_course_by_id(course_id)
+    if not course:
+        flash('Course not found', 'danger')
+        return redirect(url_for('view_classroom', classroom_id=classroom_id))
+    
+    student = User.query.get(student_id)
+    if not student or student.role != 'student' or student.classroom_id != classroom_id:
+        flash('Student not found or does not belong to this classroom', 'danger')
+        return redirect(url_for('view_classroom', classroom_id=classroom_id))
+    
+    grade = Grade.query.filter_by(course_id=course_id, student_id=student_id).first()
+    if not grade:
+        grade = Grade(course_id=course_id, student_id=student_id)
+
+    form = GradeForm(obj=grade)
+    if form.validate_on_submit():
+        grade.value = form.value.data
+        db.session.add(grade)
+        db.session.commit()
+        flash('Grade updated successfully!', 'success')
+        return render_template('student_grades.html', classroom=classroom, student=student, grades_dict=grades_dict)
+    
+    return render_template('edit_grade.html', form=form, classroom=classroom, course=course, student=student)
+
+# ลบฟังก์ชันนี้ได้เลย
+# @app.route('/classrooms/<int:classroom_id>/grades/<int:student_id>', methods=['GET', 'POST'])
+# @login_required
+# @admin_required
+# def grade_student(classroom_id, student_id):
+#     classroom = Classroom.get_by_id(classroom_id)
+#     student = User.get_by_id(student_id)
+#     if not classroom or not student:
+#         flash('Classroom or Student not found', 'danger')
+#         return redirect(url_for('view_classroom', classroom_id=classroom_id))
+
+#     form = GradeForm()
+#     form.student_id.data = student_id
+
+#     if request.method == 'GET':
+#         while len(form.grades):
+#             form.grades.pop_entry()
+#         for course in classroom.courses:
+#             grade = Grade.query.filter_by(student_id=student_id, course_id=course.id).first()
+#             grade_field_form = GradeFieldForm()
+#             grade_field_form.course_id.data = course.id
+#             grade_field_form.value.data = grade.value if grade else None
+#             form.grades.append_entry(grade_field_form)
+
+#     if form.validate_on_submit():
+#         app.logger.info('Form validation successful')
+#         for grade_form in form.grades:
+#             if grade_form.value.data:
+#                 app.logger.info(f'Processing grade for course {grade_form.course_id.data} with value {grade_form.value.data}')
+#                 grade = Grade.query.filter_by(student_id=student_id, course_id=grade_form.course_id.data).first()
+#                 if grade:
+#                     grade.value = float(grade_form.value.data)
+#                 else:
+#                     Grade.add_grade(value=float(grade_form.value.data), student_id=student_id, course_id=grade_form.course_id.data)
+#         db.session.commit()
+#         flash('Grades saved successfully!', 'success')
+#         return redirect(url_for('view_classroom', classroom_id=classroom_id))
+#     else:
+#         app.logger.info('Form validation failed')
+#         app.logger.info(f'Form errors: {form.errors}')
+#         for error in form.errors:
+#             app.logger.info(f'Error: {error}')
+
+#     return render_template('grade_student.html', form=form, student=student, classroom=classroom)
+
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Edit Grade for {{ student.first_name }} {{ student.last_name }}</h1>
+    <p>Classroom: {{ classroom.name }}</p>
+    <p>Course: {{ course.name }}</p>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="value">Grade</label>
+            {{ form.value(class="form-control") }}
+        </div>
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Save Grade</button>
+        </div>
+    </form>
+{% endblock %}
