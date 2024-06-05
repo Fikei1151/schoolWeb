@@ -165,15 +165,15 @@ def edit_classroom(classroom_id):
         return redirect(url_for('classrooms'))
     return render_template('edit_classroom.html', form=form)
 
-@app.route('/class_me')
-@login_required
-@teacher_required
-def class_me():
-    classroom = Classroom.query.filter_by(teacher_id=current_user.id).first()
-    if not classroom:
-        flash('You are not assigned to any classroom', 'danger')
-        return redirect(url_for('index'))
-    return redirect(url_for('grades_classroom', classroom_id=classroom.id))
+# @app.route('/class_me', methods=['GET'])
+# @login_required
+# def class_me():
+#     if current_user.role != 'teacher' or not current_user.teacher_classroom:
+#         flash('You are not assigned to any classroom', 'danger')
+#         return redirect(url_for('dashboard'))
+    
+#     classroom = current_user.teacher_classroom
+#     return redirect(url_for('view_classroom', classroom_id=classroom.id))
 
 
 @app.route('/classrooms/delete/<int:classroom_id>', methods=['POST'])
@@ -186,6 +186,7 @@ def delete_classroom(classroom_id):
     else:
         flash('Failed to delete classroom', 'danger')
     return redirect(url_for('classrooms'))
+
 @app.route('/classrooms/<int:classroom_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -194,25 +195,35 @@ def view_classroom(classroom_id):
     if not classroom:
         flash('Classroom not found', 'danger')
         return redirect(url_for('classrooms'))
-    
+
+    # กรองนักเรียนที่ยังไม่อยู่ในห้องเรียนอื่น
+    students_not_in_class = User.query.filter(User.classroom_id.is_(None), User.role == 'student').all()
+
+    # กรองครูที่ยังไม่ได้สอนในห้องเรียนอื่น
+    teachers_not_in_class = User.query.filter((User.teacher_classroom == None) | (User.id == classroom.teacher_id), User.role == 'teacher').all()
+
+    # ดึงหลักสูตรที่ยังไม่ได้ถูกเพิ่มในห้องเรียนนี้
     courses_not_in_class = Course.query.filter(~Course.classrooms.any(id=classroom_id)).all()
-    students_not_in_class = User.query.filter((User.classroom_id != classroom_id) | (User.classroom_id == None)).all()
-    teachers = User.query.filter_by(role='teacher').all()
-    
+
     if request.method == 'POST':
         teacher_id = request.form.get('teacher_id')
+        if teacher_id:
+            teacher = db.session.get(User, teacher_id)
+            if teacher and teacher.role == 'teacher':
+                classroom.teacher_id = teacher.id
+                db.session.commit()
+                flash('Teacher assigned to classroom successfully!', 'success')
+
         student_id = request.form.get('student_id')
         course_id = request.form.get('course_id')
-        if teacher_id:
-            classroom.teacher_id = teacher_id
-            db.session.commit()
-            flash('Teacher assigned to classroom successfully!', 'success')
         if student_id:
             student = db.session.get(User, student_id)
             if student and student.role == 'student':
                 student.classroom_id = classroom_id
                 db.session.commit()
                 flash('Student added to classroom successfully!', 'success')
+                # อัปเดตรายชื่อนักเรียนใหม่หลังจากเพิ่มสำเร็จ
+                students_not_in_class = User.query.filter(User.classroom_id.is_(None), User.role == 'student').all()
         if course_id:
             course = db.session.get(Course, course_id)
             if course:
@@ -220,8 +231,27 @@ def view_classroom(classroom_id):
                 db.session.commit()
                 flash('Course added to classroom successfully!', 'success')
         return redirect(url_for('view_classroom', classroom_id=classroom_id))
-    
-    return render_template('view_classroom.html', classroom=classroom, students_not_in_class=students_not_in_class, courses_not_in_class=courses_not_in_class, teachers=teachers)
+
+    return render_template('view_classroom.html', classroom=classroom, students_not_in_class=students_not_in_class, courses_not_in_class=courses_not_in_class, teachers_not_in_class=teachers_not_in_class)
+
+@app.route('/classrooms/<int:classroom_id>/remove_teacher', methods=['POST'])
+@login_required
+@admin_required
+def remove_teacher(classroom_id):
+    classroom = Classroom.get_by_id(classroom_id)
+    if not classroom:
+        flash('Classroom not found', 'danger')
+        return redirect(url_for('classrooms'))
+
+    if classroom.teacher_id:
+        classroom.teacher_id = None
+        db.session.commit()
+        flash('Teacher removed from classroom successfully!', 'success')
+    else:
+        flash('No teacher assigned to this classroom', 'warning')
+
+    return redirect(url_for('view_classroom', classroom_id=classroom_id))
+
 
 @app.route('/classrooms/<int:classroom_id>/remove_student/<int:student_id>', methods=['POST'])
 @login_required
@@ -314,18 +344,20 @@ def add_course_to_classroom(classroom_id):
 
 @app.route('/classrooms/<int:classroom_id>/grades')
 @login_required
-@admin_required
 def grades_classroom(classroom_id):
     classroom = Classroom.get_by_id(classroom_id)
     if not classroom:
         flash('Classroom not found', 'danger')
         return redirect(url_for('classrooms'))
     
+    if current_user.role != 'admin' and current_user.id != classroom.teacher_id:
+        flash('You do not have permission to view this classroom', 'danger')
+        return redirect(url_for('index'))
+
     return render_template('grades_classroom.html', classroom=classroom)
 
 @app.route('/classrooms/<int:classroom_id>/grades/<int:student_id>', methods=['GET'])
 @login_required
-@admin_required
 def view_student_grades(classroom_id, student_id):
     classroom = Classroom.get_by_id(classroom_id)
     student = User.get_by_id(student_id)
@@ -340,7 +372,6 @@ def view_student_grades(classroom_id, student_id):
 
 @app.route('/classrooms/<int:classroom_id>/edit_grade/<int:course_id>/<int:student_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def edit_grade(classroom_id, course_id, student_id):
     classroom = Classroom.get_by_id(classroom_id)
     grades = Grade.query.filter_by(student_id=student_id).all()

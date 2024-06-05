@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     classroom_id = db.Column(db.Integer, db.ForeignKey('classroom.id'))
     classroom = db.relationship('Classroom', back_populates='students', foreign_keys=[classroom_id])
     grades = db.relationship('Grade', backref='student', lazy=True)
-    teacher_classroom = db.relationship('Classroom', back_populates='teacher', foreign_keys='Classroom.teacher_id')
+    teacher_classroom = db.relationship('Classroom', back_populates='teacher', uselist=False, foreign_keys='Classroom.teacher_id')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

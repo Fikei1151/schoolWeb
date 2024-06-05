@@ -4,20 +4,31 @@
     <p>Academic Year: {{ classroom.academic_year }}</p>
 
     <h2>Teacher</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label for="teacher_id">Select Teacher</label>
-            <select class="form-control" id="teacher_id" name="teacher_id">
-                <option value="">Select a teacher</option>
-                {% for teacher in teachers %}
-                    <option value="{{ teacher.id }}" {% if teacher.id == classroom.teacher_id %}selected{% endif %}>{{ teacher.first_name }} {{ teacher.last_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group mt-3">
-            <button type="submit" class="btn btn-primary">Assign Teacher</button>
-        </div>
-    </form>
+    {% if classroom.teacher %}
+        <ul class="list-group mt-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
+                <form action="{{ url_for('remove_teacher', classroom_id=classroom.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+            </li>
+        </ul>
+    {% else %}
+        <form method="POST">
+            <div class="form-group">
+                <label for="teacher_id">Select Teacher</label>
+                <select class="form-control" id="teacher_id" name="teacher_id">
+                    <option value="">Select a teacher</option>
+                    {% for teacher in teachers_not_in_class %}
+                        <option value="{{ teacher.id }}" {% if teacher.id == classroom.teacher_id %}selected{% endif %}>{{ teacher.first_name }} {{ teacher.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Assign Teacher</button>
+            </div>
+        </form>
+    {% endif %}
 
     <h2>Students</h2>
     <ul class="list-group mt-3">
@@ -74,8 +85,6 @@
     </form>
 
     <a href="{{ url_for('grades_classroom', classroom_id=classroom.id) }}" class="btn btn-secondary mt-3">เกรด</a>
-
-
 
 {% endblock %}
 

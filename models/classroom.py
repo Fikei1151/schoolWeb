@@ -6,15 +6,14 @@ classroom_courses = db.Table('classroom_courses',
     extend_existing=True
 )
 
-
 class Classroom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     academic_year = db.Column(db.String(20), nullable=False)
-    teacher_id = db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+    teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     teacher = db.relationship('User', back_populates='teacher_classroom', foreign_keys=[teacher_id])
     students = db.relationship('User', back_populates='classroom', foreign_keys=[User.classroom_id])
-    courses = db.relationship('Course', secondary='classroom_courses', back_populates='classrooms')  # เพิ่ม back_populates
+    courses = db.relationship('Course', secondary='classroom_courses', back_populates='classrooms')
 
     @staticmethod
     def add_classroom(name, academic_year, teacher_id=None):
