@@ -7,12 +7,15 @@ from forms.classroom_form import ClassroomForm
 from forms.course_form import CourseForm
 from forms.grade_form import GradeForm
 from models.user import db, User
+from models.homepage import Slide, News
 from models.classroom import Classroom
 from models.course import Course
 from models.grade import Grade
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from utils.decorators import admin_required, teacher_required, student_required
 from flask_migrate import Migrate
+from werkzeug.utils import secure_filename
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -31,9 +34,93 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    slides = Slide.query.all()
+    news_list = News.query.all()
+    return render_template('index.html', slides=slides, slide_count=len(slides), news_list=news_list)
+
+@app.route('/manage_homepage', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_homepage():
+    if request.method == 'POST':
+        slide_image = request.files.get('slide_image')
+        slide_title = request.form.get('slide_title')
+        slide_description = request.form.get('slide_description')
+        
+        if slide_image:
+            filename = secure_filename(slide_image.filename)
+            if not os.path.exists('static/images'):
+                os.makedirs('static/images')
+            slide_image.save(os.path.join('static/images', filename))
+            
+            new_slide = Slide(filename=filename, title=slide_title, description=slide_description)
+            db.session.add(new_slide)
+            db.session.commit()
+            flash('Slide added successfully!', 'success')
+        else:
+            flash('Slide image is required', 'danger')
+        
+        news_title = request.form.get('news_title')
+        news_description = request.form.get('news_description')
+        news_file = request.files.get('news_file')
+        
+        if news_file:
+            filename = secure_filename(news_file.filename)
+            if not os.path.exists('static/news'):
+                os.makedirs('static/news')
+            news_file.save(os.path.join('static/news', filename))
+            
+            new_news = News(title=news_title, description=news_description, file=filename)
+            db.session.add(new_news)
+            db.session.commit()
+            flash('News added successfully!', 'success')
+        else:
+            flash('News file is required', 'danger')
+    
+    slides = Slide.query.all()
+    news_list = News.query.all()
+    
+    return render_template('manage_homepage.html', slides=slides, news_list=news_list)
+@app.route('/delete_slide/<int:slide_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_slide(slide_id):
+    slide = Slide.query.get(slide_id)
+    if slide:
+        # Delete the image file
+        image_path = os.path.join('static/images', slide.filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+        
+        # Delete the slide from the database
+        db.session.delete(slide)
+        db.session.commit()
+        flash('Slide deleted successfully!', 'success')
+    else:
+        flash('Slide not found', 'danger')
+    return redirect(url_for('manage_homepage'))
+
+@app.route('/delete_news/<int:news_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_news(news_id):
+    news = News.query.get(news_id)
+    if news:
+        # Delete the news file
+        news_file_path = os.path.join('static/news', news.file)
+        if os.path.exists(news_file_path):
+            os.remove(news_file_path)
+        
+        # Delete the news from the database
+        db.session.delete(news)
+        db.session.commit()
+        flash('News deleted successfully!', 'success')
+    else:
+        flash('News not found', 'danger')
+    return redirect(url_for('manage_homepage'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

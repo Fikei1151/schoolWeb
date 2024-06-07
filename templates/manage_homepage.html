@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">จัดการหน้าแรก</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>สไลด์ปัจจุบัน</h2>
+            <ul class="list-group mb-4">
+                {% for slide in slides %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <img src="{{ url_for('static', filename='images/' ~ slide.filename) }}" alt="{{ slide.title }}" class="img-thumbnail" style="width: 150px; height: auto;">
+                            <div class="ms-3">
+                                <h5>{{ slide.title }}</h5>
+                                <p>{{ slide.description }}</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ url_for('delete_slide', slide_id=slide.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">ลบ</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-6">
+            <h2>เพิ่มสไลด์</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="slide_image" class="form-label">รูปภาพสไลด์</label>
+                            <input type="file" class="form-control" id="slide_image" name="slide_image">
+                        </div>
+                        <div class="mb-3">
+                            <label for="slide_title" class="form-label">หัวข้อสไลด์</label>
+                            <input type="text" class="form-control" id="slide_title" name="slide_title">
+                        </div>
+                        <div class="mb-3">
+                            <label for="slide_description" class="form-label">รายละเอียดสไลด์</label>
+                            <textarea class="form-control" id="slide_description" name="slide_description"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">เพิ่มสไลด์</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2>ข่าวสารปัจจุบัน</h2>
+            <ul class="list-group mb-4">
+                {% for news in news_list %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>{{ news.title }}</h5>
+                            <p>{{ news.description }}</p>
+                            <a href="{{ url_for('static', filename='news/' ~ news.file) }}" class="btn btn-primary btn-sm">อ่านเพิ่มเติม</a>
+                        </div>
+                        <form method="POST" action="{{ url_for('delete_news', news_id=news.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">ลบ</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-6">
+            <h2>เพิ่มข่าวสาร</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="news_title" class="form-label">หัวข้อข่าว</label>
+                            <input type="text" class="form-control" id="news_title" name="news_title">
+                        </div>
+                        <div class="mb-3">
+                            <label for="news_description" class="form-label">รายละเอียดข่าว</label>
+                            <textarea class="form-control" id="news_description" name="news_description"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="news_file" class="form-label">ไฟล์ข่าว</label>
+                            <input type="file" class="form-control" id="news_file" name="news_file">
+                        </div>
+                        <button type="submit" class="btn btn-primary">เพิ่มข่าวสาร</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
