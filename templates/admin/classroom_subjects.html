@@ -1,0 +1,81 @@
+{% extends 'layout.html' %}
+{% block title %}จัดการรายวิชาในห้องเรียน (Admin){% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">จัดการรายวิชาในห้อง: {{ classroom.name }}</h1>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="p-2 mb-2 rounded 
+          {% if category == 'success' %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- ฟอร์มเพิ่มรายวิชา -->
+  <form method="POST" action="{{ url_for('admin.admin_classroom_subjects', classroom_id=classroom.id) }}">
+    <label class="block mb-2">เลือกวิชาที่ต้องการเพิ่ม</label>
+    <div class="flex flex-wrap gap-4">
+      {% for subject in all_subjects %}
+        <div>
+          <input type="checkbox" name="subject_ids" value="{{ subject.id }}"
+                 id="subject-{{ subject.id }}"
+                 {% if subject.id in current_subject_ids %}disabled{% endif %}
+          >
+          <label for="subject-{{ subject.id }}">{{ subject.code }} - {{ subject.name }}</label>
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4">
+      เพิ่มรายวิชา
+    </button>
+  </form>
+
+  <!-- รายวิชาที่มีในห้องแล้ว -->
+  <h2 class="text-xl font-semibold mt-6">รายวิชาในห้องเรียนขณะนี้</h2>
+  <table class="w-full text-left border-collapse mt-4">
+    <thead>
+      <tr class="bg-pink-100">
+        <th class="border p-2">#</th>
+        <th class="border p-2">รหัสวิชา</th>
+        <th class="border p-2">ชื่อวิชา</th>
+        <th class="border p-2">หน่วยกิต</th>
+        <th class="border p-2 text-center">การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set count = 1 %}
+      {% for subj_id in current_subject_ids %}
+        {% set subj = (all_subjects|selectattr('id','equalto',subj_id)|list)[0] %}
+        <tr class="hover:bg-gray-100">
+          <td class="border p-2">{{ count }}</td>
+          <td class="border p-2">{{ subj.code }}</td>
+          <td class="border p-2">{{ subj.name }}</td>
+          <td class="border p-2">{{ subj.credits }}</td>
+          <td class="border p-2 text-center">
+            <form method="POST"
+                  action="{{ url_for('admin.admin_remove_subject_from_classroom',
+                                     classroom_id=classroom.id,
+                                     subject_id=subj.id) }}">
+              <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                ลบ
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% set count = count + 1 %}
+      {% endfor %}
+      {% if current_subject_ids|length == 0 %}
+        <tr>
+          <td colspan="5" class="border p-4 text-center text-gray-500">ยังไม่มีรายวิชาในห้องเรียนนี้</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+</div>
+{% endblock %}

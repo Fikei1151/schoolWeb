@@ -1,0 +1,124 @@
+
+{% extends 'layout.html' %}
+{% block title %}รายละเอียดห้องเรียน{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">รายละเอียดห้องเรียน: {{ classroom.name }}</h1>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="p-2 mb-2 rounded 
+          {% if category == 'success' %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- ครูผู้ดูแล -->
+  <div class="mb-6">
+    <p class="text-lg font-semibold text-gray-700">ครูผู้ดูแล:</p>
+    <form method="POST" action="{{ url_for('admin.assign_teacher', classroom_id=classroom.id) }}" class="flex items-center space-x-2 mt-2">
+      <select name="teacher_id" class="border rounded px-2 py-1 w-64">
+        <option value="">-- เลือกครู --</option>
+        {% for teacher in teachers %}
+          <option value="{{ teacher.id }}" {% if classroom.teacher and classroom.teacher.id == teacher.id %}selected{% endif %}>
+            {{ teacher.first_name }} {{ teacher.last_name }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">บันทึก</button>
+    </form>
+  </div>
+
+  <!-- รายชื่อนักเรียน -->
+  <h2 class="text-xl font-semibold mb-4 text-gray-700">รายชื่อนักเรียน</h2>
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="bg-pink-100">
+        <th class="border p-2">#</th>
+        <th class="border p-2">ชื่อ-นามสกุล</th>
+        <th class="border p-2">รหัสบัตรประชาชน</th>
+        <th class="border p-2 text-center">การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for student in students %}
+        <tr class="hover:bg-gray-100">
+          <td class="border p-2">{{ loop.index }}</td>
+          <td class="border p-2">{{ student.first_name }} {{ student.last_name }}</td>
+          <td class="border p-2">{{ student.citizen_id }}</td>
+          <td class="border p-2 text-center">
+            <form method="POST" action="{{ url_for('admin.remove_student_from_classroom', classroom_id=classroom.id, student_id=student.id) }}">
+              <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">ลบ</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      {% if students|length == 0 %}
+        <tr>
+          <td colspan="4" class="border p-4 text-center text-gray-500">ไม่มีนักเรียนในห้องนี้</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <!-- รายวิชาในห้องเรียน -->
+  <h2 class="text-xl font-semibold mt-6 text-gray-700">รายวิชาที่เรียนในห้องนี้</h2>
+  <table class="w-full text-left border-collapse mt-4">
+    <thead>
+      <tr class="bg-pink-100">
+        <th class="border p-2">#</th>
+        <th class="border p-2">รหัสวิชา</th>
+        <th class="border p-2">ชื่อวิชา</th>
+        <th class="border p-2">หน่วยกิต</th>
+        <th class="border p-2 text-center">การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subject in subjects %}
+        <tr class="hover:bg-gray-100">
+          <td class="border p-2">{{ loop.index }}</td>
+          <td class="border p-2">{{ subject.code }}</td>
+          <td class="border p-2">{{ subject.name }}</td>
+          <td class="border p-2">{{ subject.credits }}</td>
+          <td class="border p-2 text-center">
+            <form method="POST" action="{{ url_for('admin.remove_subject_from_classroom', classroom_id=classroom.id, subject_id=subject.id) }}">
+              <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">ลบ</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      {% if subjects|length == 0 %}
+        <tr>
+          <td colspan="5" class="border p-4 text-center text-gray-500">ไม่มีรายวิชาในห้องนี้</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <!-- ปุ่มสำหรับจัดการ -->
+  <div class="mt-6">
+    <a href="{{ url_for('admin.add_student_to_classroom', classroom_id=classroom.id) }}" 
+   class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
+  เชิญนักเรียนเพิ่ม
+</a>
+    <a href="{{ url_for('admin.admin_classroom_subjects', classroom_id=classroom.id) }}"
+       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">จัดการรายวิชา</a>
+    <form method="POST" action="{{ url_for('admin.delete_classroom', classroom_id=classroom.id) }}" class="inline">
+      <button type="submit" 
+              class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">ลบห้องเรียน</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ฟังก์ชันสำหรับเปิด/ปิดกล่องยืนยันการลบ
+  function toggleConfirmDelete(studentId) {
+    const element = document.getElementById(`confirm-delete-${studentId}`);
+    element.classList.toggle('hidden');
+  }
+</script>
+{% endblock %}

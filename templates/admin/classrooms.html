@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block title %}รายการห้องเรียน{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4">รายการห้องเรียน</h1>
+
+  <!-- ค้นหาห้องเรียน -->
+  <form method="POST" class="mb-4">
+    <input type="text" name="search" placeholder="ค้นหาชื่อห้องเรียน..."
+           class="border p-2 rounded w-1/2">
+    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">ค้นหา</button>
+  </form>
+
+  <!-- รายการห้องเรียน -->
+  <table class="w-full border-collapse">
+    <thead>
+      <tr class="bg-pink-100">
+        <th class="border p-2">ชื่อห้องเรียน</th>
+        <th class="border p-2">ครูผู้ดูแล</th>
+        <th class="border p-2">ตัวเลือก</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for classroom in classrooms %}
+        <tr>
+          <td class="border p-2">{{ classroom.name }}</td>
+          <td class="border p-2">
+            {% if classroom.teacher %}
+              {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
+            {% else %}
+              <i>None</i>
+            {% endif %}
+          </td>
+          <td class="border p-2">
+            <a href="{{ url_for('admin.classroom_detail', classroom_id=classroom.id) }}" 
+               class="text-pink-600 hover:underline">ดูรายละเอียด</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

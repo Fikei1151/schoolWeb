@@ -1,0 +1,30 @@
+
+
+  {% extends 'layout.html' %}
+{% block title %}ตั้งค่าปีการศึกษา{% endblock %}
+{% block content %}
+<!-- เพิ่มการเลือกหลายรายวิชา -->
+<form method="POST">
+    <div class="mb-4">
+      <label>เลือกรายวิชา:</label>
+      <select name="subject_ids" multiple class="border rounded w-full p-2">
+        {% for subject in subjects %}
+          <option value="{{ subject.id }}">{{ subject.code }} - {{ subject.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div class="mb-4">
+      <label>เลือกห้องเรียน:</label>
+      {% for classroom in classrooms %}
+        <label class="block">
+          <input type="checkbox" name="classroom_ids" value="{{ classroom.id }}">
+          {{ classroom.name }}
+        </label>
+      {% endfor %}
+    </div>
+    
+    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">บันทึก</button>
+  </form>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-2xl font-bold mb-4">ห้องเรียน: {{ classroom.name }}</h1>
+    <h2 class="text-xl font-semibold mb-6">รายวิชา: {{ subject.name }}</h2>
+
+    <form method="POST" onsubmit="return validateGrades()">
+        <table class="table-auto w-full border-collapse border border-gray-300 mb-4">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border border-gray-300 px-4 py-2 text-left">ชื่อนักเรียน</th>
+                    <th class="border border-gray-300 px-4 py-2 text-left">เกรด</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr class="odd:bg-white even:bg-gray-50">
+                    <td class="border border-gray-300 px-4 py-2">{{ student.first_name }} {{ student.last_name }}</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        <input 
+                            type="number" 
+                            name="grade_{{ student.id }}" 
+                            value="{{ grades.get(student.id, '') }}" 
+                            class="w-full p-2 border border-gray-300 rounded grade-input"
+                            min="0.0"
+                            max="4.0"
+                            step="0.5"
+                            required
+                        >
+                        <span class="text-red-500 text-sm hidden" id="error_{{ student.id }}">กรุณากรอกเกรดระหว่าง 1.0 ถึง 4.0</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">บันทึกเกรด</button>
+    </form>
+</div>
+
+<script>
+    function validateGrades() {
+        let isValid = true;
+        const gradeInputs = document.querySelectorAll('.grade-input');
+
+        gradeInputs.forEach(input => {
+            const gradeValue = parseFloat(input.value);
+            const errorSpan = document.getElementById(`error_${input.name.split('_')[1]}`);
+
+            if (isNaN(gradeValue) || gradeValue < 1.0 || gradeValue > 4.0) {
+                errorSpan.style.display = 'block';
+                isValid = false;
+            } else {
+                errorSpan.style.display = 'none';
+            }
+        });
+
+        if (!isValid) {
+            alert('กรุณาตรวจสอบเกรดให้ถูกต้อง (ต้องอยู่ระหว่าง 0.0 ถึง 4.0)');
+        }
+
+        return isValid;
+    }
+</script>
+{% endblock %}

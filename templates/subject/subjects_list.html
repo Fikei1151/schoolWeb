@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{% block title %}รายการรายวิชา{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">รายการรายวิชา</h1>
+
+  <table class="w-full border-collapse">
+    <thead class="bg-pink-100">
+      <tr>
+        <th class="border p-2">#</th>
+        <th class="border p-2">รหัสวิชา</th>
+        <th class="border p-2">ชื่อวิชา</th>
+   
+        <th class="border p-2">จัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subj in subjects %}
+      <tr class="hover:bg-gray-50">
+        <td class="border p-2">{{ loop.index }}</td>
+        <td class="border p-2">{{ subj.code }}</td>
+        <td class="border p-2">{{ subj.name }}</td>
+    
+        <td class="border p-2">
+          <a href="{{ url_for('subject.subject_detail', subject_id=subj.id) }}"
+             class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">
+            ดู/แก้ไข
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if subjects|length == 0 %}
+      <tr>
+        <td colspan="5" class="border p-4 text-center text-gray-500">ยังไม่มีรายวิชา</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

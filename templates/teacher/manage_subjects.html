@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+{% block title %}สร้างรายวิชา (Teacher){% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">สร้างรายวิชา(Teacher)</h1>
+
+  <!-- ฟอร์มสร้างรายวิชา -->
+  <form method="POST" class="mb-6 bg-blue-50 p-4 rounded">
+    <div class="mb-2">
+      <label>รหัสวิชา:</label>
+      <input type="text" name="code" class="border rounded w-full px-2 py-1" required>
+    </div>
+    <div class="mb-2">
+      <label>ชื่อวิชา:</label>
+      <input type="text" name="name" class="border rounded w-full px-2 py-1" required>
+    </div>
+    <div class="mb-2">
+      <label>หน่วยกิต:</label>
+      <input type="number" name="credits" class="border rounded w-full px-2 py-1" min="0" required>
+    </div>
+    <div class="mb-2">
+      <label>คำอธิบาย (option):</label>
+      <textarea name="description" class="border rounded w-full px-2 py-1"></textarea>
+    </div>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">บันทึก</button>
+  </form>
+
+  <!-- ตารางแสดงรายวิชา -->
+  <h2 class="text-xl font-semibold mb-4">รายวิชาทั้งหมด</h2>
+  <table class="w-full border-collapse">
+    <thead class="bg-blue-100">
+      <tr>
+        <th class="border p-2">#</th>
+        <th class="border p-2">รหัสวิชา</th>
+        <th class="border p-2">ชื่อวิชา</th>
+        <th class="border p-2">หน่วยกิต</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subj in subjects %}
+      <tr class="hover:bg-gray-100">
+        <td class="border p-2">{{ loop.index }}</td>
+        <td class="border p-2">{{ subj.code }}</td>
+        <td class="border p-2">{{ subj.name }}</td>
+        <td class="border p-2">{{ subj.credits }}</td>
+      </tr>
+      {% endfor %}
+      {% if subjects|length == 0 %}
+      <tr>
+        <td colspan="4" class="border p-4 text-center text-gray-500">ยังไม่มีรายวิชา</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

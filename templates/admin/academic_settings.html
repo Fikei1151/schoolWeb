@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% block title %}ตั้งค่าปีการศึกษา{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-6 shadow rounded">
+  <h2 class="text-2xl font-bold mb-4">Academic Settings</h2>
+  <form method="POST">
+    <div class="mb-4">
+      <label class="block mb-1">Current Year</label>
+      <input type="number" name="current_year" 
+             class="border w-full p-2 rounded" 
+             value="{{ setting.current_year if setting else '' }}" required>
+    </div>
+    <div class="mb-4">
+      <label class="block mb-1">Current Semester</label>
+      <select name="current_semester" class="border w-full p-2 rounded">
+        <option value="1" {% if setting and setting.current_semester == 1 %}selected{% endif %}>1</option>
+        <option value="2" {% if setting and setting.current_semester == 2 %}selected{% endif %}>2</option>
+      </select>
+    </div>
+    <button type="submit" 
+            class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">
+      Save
+    </button>
+  </form>
+</div>
+{% endblock %}

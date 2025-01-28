@@ -1,0 +1,34 @@
+
+
+
+  {% extends 'layout.html' %}
+{% block title %}ตั้งค่าปีการศึกษา{% endblock %}
+{% block content %}
+<!-- แสดงรายวิชาทั้งระบบและรายวิชาในห้องเรียน -->
+<form method="POST">
+    <div class="mb-4">
+      <label>เลือกรายวิชา:</label>
+      <select name="subject_ids" multiple class="border rounded w-full p-2">
+        {% for subject in all_subjects %}
+          <option value="{{ subject.id }}" {% if subject.id in current_subjects %}disabled{% endif %}>
+            {{ subject.code }} - {{ subject.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">เพิ่มรายวิชา</button>
+  </form>
+  
+  <!-- แสดงรายวิชาในห้องเรียนปัจจุบัน -->
+  <ul class="mt-4">
+    {% for subject in classroom.subjects %}
+      <li class="flex justify-between items-center py-2">
+        {{ subject.code }} - {{ subject.name }}
+        <form method="POST" action="{{ url_for('teacher.remove_subject', classroom_id=classroom.id, subject_id=subject.id) }}">
+          <button type="submit" class="text-red-500 hover:text-red-700">ลบ</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+
+{% endblock %}

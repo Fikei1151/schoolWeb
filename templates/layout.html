@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}School Project{% endblock %}</title>
+
+  <!-- Tailwind (ใส่ CDN หรือไฟล์ output.css ที่คอมไพล์เอง) -->
+  <!-- ตัวอย่าง: ใช้ CDN สำหรับทดสอบง่าย ๆ: -->
+
+<!-- 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+ -->
+ <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Toggle เมนู (Hamburger) สำหรับ Mobile
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Toggle Dropdown เฉพาะเมนูย่อย เช่น Admin/Teacher
+    function toggleDropdown(id) {
+      const dd = document.getElementById(id);
+      dd.classList.toggle('hidden');
+    }
+  </script>
+</head>
+
+<body class="bg-white text-gray-800 font-sans">
+
+<!-- 
+  ==============================================
+  ส่วน Navbar บนสุด (สีชมพูเข้ม) 
+  ==============================================
+-->
+<nav class="bg-pink-600">
+  <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+    <!-- Logo/Brand -->
+    <div class="flex items-center space-x-2">
+      <!-- ใส่โลโก้ได้ตามต้องการ
+      <img src="{{ url_for('static', filename='images/chula_logo.png') }}" alt="Logo" class="h-8 w-auto">
+      -->
+      <a href="{{ url_for('index') }}" class="text-white font-bold text-xl hover:opacity-90">
+        School System
+      </a>
+    </div>
+
+    <!-- ส่วน Right Menu (Desktop) -->
+    <div class="hidden md:flex items-center space-x-4">
+      <!-- ตัวอย่าง Dropdown เปลี่ยนภาษา -->
+      <div class="relative">
+        <button onclick="toggleDropdown('langMenu')"
+                class="bg-pink-500 hover:bg-pink-700 text-white px-3 py-2 rounded focus:outline-none">
+          ภาษา
+        </button>
+        <!-- Dropdown -->
+        <div id="langMenu" class="hidden absolute right-0 mt-2 bg-white text-gray-700 rounded shadow z-50">
+          <a href="#" class="block px-4 py-2 hover:bg-gray-100">TH</a>
+          <a href="#" class="block px-4 py-2 hover:bg-gray-100">EN</a>
+        </div>
+      </div>
+
+      {% if session.get('user_id') %}
+        <span class="text-sm text-white">
+          Role: <b>{{ session.get('role')|capitalize }}</b>
+        </span>
+        <a href="{{ url_for('auth.logout') }}"
+           class="bg-white hover:bg-gray-100 text-pink-700 px-3 py-2 rounded text-sm">
+          Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}"
+           class="bg-white hover:bg-gray-100 text-pink-700 px-3 py-2 rounded text-sm">
+          Login
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Hamburger Menu Button (Mobile Only) -->
+    <div class="md:hidden">
+      <button onclick="toggleMenu()" class="text-white focus:outline-none">
+        <!-- Icon สามขีด -->
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" 
+             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" 
+                stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+          </path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden bg-pink-500">
+    <div class="px-4 py-2">
+      <!-- ลิงก์เมนูย่อย Mobile -->
+      <!-- ตัวอย่าง Dropdown เปลี่ยนภาษา (จะใส่เป็น collapse อีกทีก็ได้) -->
+      <button onclick="toggleDropdown('langMenuMobile')" 
+              class="block w-full text-left text-white hover:bg-pink-400 px-3 py-2 rounded focus:outline-none">
+        ภาษา
+      </button>
+      <div id="langMenuMobile" class="hidden bg-white text-gray-700 rounded shadow mt-2">
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">TH</a>
+        <a href="#" class="block px-4 py-2 hover:bg-gray-100">EN</a>
+      </div>
+
+      {% if session.get('user_id') %}
+        <div class="mt-2 text-sm text-white">
+          Role: <b>{{ session.get('role')|capitalize }}</b>
+        </div>
+        <a href="{{ url_for('auth.logout') }}"
+           class="block mt-2 bg-white hover:bg-gray-100 text-pink-700 px-3 py-2 rounded text-sm">
+          Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}"
+           class="block mt-2 bg-white hover:bg-gray-100 text-pink-700 px-3 py-2 rounded text-sm">
+          Login
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+
+<!-- 
+  ==============================================
+  เมนูหลักระดับสอง (แถบชมพูอ่อน) 
+  แสดงตาม role 
+  ==============================================
+-->
+<div class="bg-pink-100">
+  <div class="container mx-auto px-4">
+    <ul class="flex flex-wrap items-center space-x-4 py-2 text-sm text-pink-800">
+
+      {% if session.get('role') == 'admin' %}
+        <!-- Admin Menu -->
+        <li class="relative">
+          <!-- Dropdown -->
+          <button onclick="toggleDropdown('adminMenu')"
+                  class="focus:outline-none hover:text-pink-600">
+            จัดการระบบ ▼
+          </button>
+          <ul id="adminMenu" 
+              class="hidden absolute bg-white text-gray-700 rounded shadow mt-2 w-48 z-50">
+            <li>
+              <a href="{{ url_for('admin.create_user') }}" class="block px-4 py-2 hover:bg-gray-100">
+                สร้างผู้ใช้
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.academic_settings') }}" class="block px-4 py-2 hover:bg-gray-100">
+                ตั้งค่าปีการศึกษา
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.create_classroom') }}" class="block px-4 py-2 hover:bg-gray-100">
+                สร้างห้องเรียน
+              </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.list_classrooms') }}" class="block px-4 py-2 hover:bg-gray-100">
+                    จัดการห้องเรียน
+                </a>
+              </li>
+                <li>
+              <a href="{{ url_for('admin.create_classroom') }}" class="block px-4 py-2 hover:bg-gray-100">
+                สร้างห้องเรียน
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.add_student_to_classroom_all') }}" class="block px-4 py-2 hover:bg-gray-100">
+                เพิ่มนักเรียนเข้าห้อง
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin.admin_manage_subjects') }}"  class="block px-4 py-2 hover:bg-gray-100">
+                จัดการรายวิชา
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('subject.list_subjects') }}"  class="block px-4 py-2 hover:bg-gray-100">
+                รายวิชาทั้งหมด
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" class="hover:text-pink-600">รายงาน (Reports)</a>
+        </li>
+
+      {% elif session.get('role') == 'teacher' %}
+        <!-- Teacher Menu -->
+        <li>
+          <a href="{{ url_for('teacher.teacher_home') }}" class="hover:text-pink-600">
+            หน้าแรกครู
+          </a>
+        </li>
+        <li class="relative">
+          <button onclick="toggleDropdown('teacherMenu')"
+                  class="focus:outline-none hover:text-pink-600">
+            จัดการการสอน ▼
+          </button>
+          <ul id="teacherMenu"
+              class="hidden absolute bg-white text-gray-700 rounded shadow mt-2 w-48 z-50">
+              <li>
+                <a href="{{ url_for('teacher.list_classrooms') }}" class="block px-4 py-2 hover:bg-gray-100">ห้องเรียนที่ดูแล</a>
+              </li>
+   
+            <li>
+              <a href="{{ url_for('teacher.grade_management') }}" class="block px-4 py-2 hover:bg-gray-100">ห้องที่สอน</a>
+            </li>
+            <li>
+              <a href="#" class="block px-4 py-2 hover:bg-gray-100">บันทึกเกรด</a>
+            </li>
+            <li>
+              <a href="{{ url_for('subject.list_subjects') }}"  class="block px-4 py-2 hover:bg-gray-100">
+                รายวิชาทั้งหมด
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('teacher.teacher_manage_subjects') }}"  class="block px-4 py-2 hover:bg-gray-100">
+                สร้างรายวิชา
+              </a>
+            </li>
+          </ul>
+        </li>
+       
+      {% elif session.get('role') == 'student' %}
+        <!-- Student Menu -->
+        <li>
+          <a href="{{ url_for('student.student_home') }}" class="hover:text-pink-600">
+            หน้าแรกนักเรียน
+          </a>
+        </li>
+        <li>
+          <a href="#" class="hover:text-pink-600">
+            ดูเกรดของฉัน
+          </a>
+        </li>
+
+      {% else %}
+        <!-- สำหรับผู้เยี่ยมชม หรือยังไม่ล็อกอิน -->
+        <li><a href="{{ url_for('index') }}" class="hover:text-pink-600">หน้าแรก</a></li>
+        <li><a href="#" class="hover:text-pink-600">เกี่ยวกับเรา</a></li>
+        <li><a href="#" class="hover:text-pink-600">ติดต่อ</a></li>
+      {% endif %}
+
+    </ul>
+  </div>
+</div>
+
+
+<!-- 
+  ==============================================
+  ส่วน Content หลัก
+  ==============================================
+-->
+<div class="container mx-auto px-4 py-6">
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="p-2 mb-2 rounded 
+          {% if category == 'success' %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+
+<!-- 
+  ==============================================
+  ส่วน Footer (ถ้าต้องการ)
+  ==============================================
+-->
+<footer class="bg-pink-600 text-white mt-10">
+  <div class="container mx-auto px-4 py-4 text-center text-sm">
+    © 2025 School Project. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>

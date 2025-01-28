@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-2xl font-bold mb-4">ห้องเรียน: {{ classroom.name }}</h1>
+    <h2 class="text-xl font-semibold mb-6">รายวิชา: {{ subject.name }}</h2>
+
+    <h3 class="text-lg font-medium mb-3">รายชื่อนักเรียน</h3>
+    <ul class="list-disc pl-6 mb-6">
+        {% for student in students %}
+        <li>{{ student.first_name }} {{ student.last_name }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('teacher.enter_grades', classroom_id=classroom.id, subject_id=subject.id) }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">ป้อนเกรด</a>
+</div>
+{% endblock %}

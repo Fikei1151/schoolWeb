@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+{% block title %}เพิ่มนักเรียนเข้าห้อง{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-6 shadow rounded">
+  <h2 class="text-2xl font-bold mb-4 text-pink-600">เพิ่มนักเรียนเข้าห้องเรียน</h2>
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">
+    เพิ่มนักเรียนเข้าห้องเรียน: {{ classroom.name }}
+  </h1>
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="p-2 mb-2 rounded 
+          {% if category == 'success' %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Form -->
+  <form method="POST" action="{{ url_for('admin.add_student_to_classroom', classroom_id=classroom.id) }}">
+    <!-- เลือกห้องเรียน -->
+
+
+    <!-- เลือกนักเรียน -->
+    <div class="mb-4">
+      <label for="student_id" class="block mb-1 font-semibold text-gray-700">เลือกนักเรียน</label>
+      <select name="student_id" id="student_id" class="border w-full p-2 rounded">
+        {% for s in students %}
+          {% if not s.classroom_students %}
+            <option value="{{ s.id }}">{{ s.first_name }} {{ s.last_name }} ({{ s.citizen_id }})</option>
+          {% endif %}
+        {% endfor %}
+        {% if students|length == 0 %}
+          <option disabled>ไม่มีนักเรียนที่สามารถเพิ่มได้</option>
+        {% endif %}
+      </select>
+      
+    </div>
+
+    <!-- ปุ่มเพิ่ม -->
+    <button type="submit" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">
+      เพิ่มนักเรียน
+    </button>
+  </form>
+</div>
+{% endblock %}

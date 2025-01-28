@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-2xl font-bold mb-6">ห้องเรียนที่คุณสอน</h1>
+    <ul class="space-y-6">
+        {% for classroom in classrooms %}
+        <li class="p-4 bg-gray-100 rounded-lg shadow">
+            <h2 class="text-xl font-semibold">{{ classroom.name }}</h2>
+            <p class="mt-2 font-medium">รายวิชาที่สอน:</p>
+            <ul class="mt-2 space-y-2">
+                {% for subject in classroom_subjects[classroom.id] %}
+                <li>
+                    <a href="{{ url_for('teacher.grade_students', classroom_id=classroom.id, subject_id=subject.id) }}" class="text-blue-500 hover:underline">{{ subject.name }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

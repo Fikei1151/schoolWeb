@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% block title %}รายละเอียดวิชา {{ subject.code }}{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">
+    รายละเอียดวิชา: {{ subject.code }} - {{ subject.name }}
+  </h1>
+
+  <p class="mb-2"><b>หน่วยกิต:</b> {{ subject.credits }}</p>
+  <p class="mb-2"><b>คำอธิบาย:</b> {{ subject.description or "-" }}</p>
+  <p class="mb-4"><b>เจ้าของรายวิชา (ผู้สร้าง):</b>
+    {% if subject.owner %}
+      {{ subject.owner.first_name }} {{ subject.owner.last_name }}
+    {% else %}
+      <span class="text-gray-500">ไม่ระบุ</span>
+    {% endif %}
+  </p>
+
+  <hr class="my-4">
+  <h2 class="text-xl font-semibold">ครูผู้สอนรายวิชานี้</h2>
+  <ul class="list-disc ml-5">
+    {% for t in subject.teachers %}
+    <li>
+      {{ t.first_name }} {{ t.last_name }}
+      {% if can_edit %}
+      <!-- ปุ่มลบครูผู้สอน -->
+      <form method="POST" action="{{ url_for('subject.remove_teacher', subject_id=subject.id, teacher_id=t.id) }}" class="inline">
+        <button type="submit" 
+                class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-sm">
+          ลบ
+        </button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+    {% if subject.teachers|length == 0 %}
+    <li class="text-gray-500">- ยังไม่มีครูผู้สอน -</li>
+    {% endif %}
+  </ul>
+
+  {% if can_edit %}
+  <div class="mt-4">
+    <a href="{{ url_for('subject.edit_subject', subject_id=subject.id) }}"
+       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      แก้ไขข้อมูลรายวิชา
+    </a>
+    <a href="{{ url_for('subject.add_teacher', subject_id=subject.id) }}"
+       class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
+      เพิ่มครูผู้สอน
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

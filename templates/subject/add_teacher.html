@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block title %}เพิ่มครูผู้สอน{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">
+    เพิ่มครูผู้สอนให้วิชา: {{ subject.code }} - {{ subject.name }}
+  </h1>
+
+  <form method="POST">
+    <div class="mb-2">
+      <label class="block mb-1">เลือกครูผู้สอน (เลือกได้หลายคน):</label>
+      {% for teacher in all_teachers %}
+        <div>
+          <input type="checkbox" name="teacher_ids" value="{{ teacher.id }}" id="teacher-{{ teacher.id }}">
+          <label for="teacher-{{ teacher.id }}">
+            {{ teacher.first_name }} {{ teacher.last_name }}
+          </label>
+        </div>
+      {% endfor %}
+      {% if all_teachers|length == 0 %}
+        <p class="text-gray-500">ยังไม่มีครูในระบบ</p>
+      {% endif %}
+    </div>
+    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 mt-2">
+      เพิ่มครูผู้สอน
+    </button>
+  </form>
+</div>
+{% endblock %}

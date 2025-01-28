@@ -1,0 +1,21 @@
+{
+  "name": "schoolweb",
+  "version": "1.0.0",
+  "main": "postcss.config.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/style.css -o ./static/css/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fikei1151/schoolWeb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Fikei1151/schoolWeb/issues"
+  },
+  "homepage": "https://github.com/Fikei1151/schoolWeb#readme",
+  "description": ""
+}

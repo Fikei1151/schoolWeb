@@ -1,0 +1,136 @@
+{% extends 'layout.html' %}
+{% block title %}รายละเอียดห้องเรียน{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4 text-pink-600">รายละเอียดห้องเรียน: {{ classroom.name }}</h1>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="p-2 mb-2 rounded 
+          {% if category == 'success' %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+ 
+  <!-- รายวิชาที่เรียนในห้อง -->
+<h2 class="text-xl font-semibold mt-6">รายวิชาที่เรียนในห้องนี้</h2>
+<table class="w-full text-left border-collapse mt-4">
+  <thead>
+    <tr class="bg-pink-100">
+      <th class="border p-2">#</th>
+      <th class="border p-2">รหัสวิชา</th>
+      <th class="border p-2">ชื่อวิชา</th>
+      <th class="border p-2">หน่วยกิต</th>
+      <th class="border p-2 text-center">การจัดการ</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for subject in subjects %}
+      <tr class="hover:bg-gray-100">
+        <td class="border p-2">{{ loop.index }}</td>
+        <td class="border p-2">{{ subject.code }}</td>
+        <td class="border p-2">{{ subject.name }}</td>
+        <td class="border p-2">{{ subject.credits }}</td>
+        <td class="border p-2 text-center">
+          <!-- ปุ่มลบวิชา -->
+          <form method="POST" action="{{ url_for('teacher.remove_subject_from_classroom', classroom_id=classroom.id, subject_id=subject.id) }}">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">ลบ</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    {% if subjects|length == 0 %}
+      <tr>
+        <td colspan="5" class="border p-4 text-center text-gray-500">ไม่มีรายวิชาในห้องนี้</td>
+      </tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<!-- ปุ่มจัดการรายวิชา -->
+<div class="mt-6">
+  <a href="{{ url_for('teacher.classroom_subjects', classroom_id=classroom.id) }}" 
+     class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    จัดการรายวิชา
+  </a>
+</div>
+
+  <!-- รายชื่อนักเรียน -->
+  <h2 class="text-xl font-semibold mb-4">รายชื่อนักเรียน</h2>
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="bg-pink-100">
+        <th class="border p-2">#</th>
+        <th class="border p-2">ชื่อ-นามสกุล</th>
+        <th class="border p-2">รหัสบัตรประชาชน</th>
+        <th class="border p-2 text-center">การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for student in students %}
+        <tr class="hover:bg-gray-100">
+          <td class="border p-2">{{ loop.index }}</td>
+          <td class="border p-2">{{ student.first_name }} {{ student.last_name }}</td>
+          <td class="border p-2">{{ student.citizen_id }}</td>
+          <td class="border p-2 text-center">
+            <!-- ปุ่มลบนักเรียน -->
+            <button onclick="toggleConfirmDelete('{{ student.id }}')" 
+                    class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+              ลบ
+            </button>
+          </td>
+        </tr>
+        <!-- กล่องยืนยันการลบ -->
+        <div id="confirm-delete-{{ student.id }}" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div class="bg-white p-6 rounded shadow max-w-sm w-full">
+            <h3 class="text-lg font-bold mb-4">ยืนยันการลบ</h3>
+            <p class="text-gray-700 mb-4">คุณต้องการลบนักเรียน {{ student.first_name }} {{ student.last_name }} ออกจากห้องเรียนใช่หรือไม่?</p>
+            <div class="flex justify-end space-x-2">
+              <button onclick="toggleConfirmDelete('{{ student.id }}')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">ยกเลิก</button>
+              <form method="POST" action="{{ url_for('teacher.remove_student_from_classroom', classroom_id=classroom.id, student_id=student.id) }}">
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">ยืนยัน</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      {% if students|length == 0 %}
+        <tr>
+          <td colspan="4" class="border p-4 text-center text-gray-500">ไม่มีนักเรียนในห้องนี้</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <!-- ปุ่มสำหรับจัดการ -->
+  <div class="mt-6">
+    <!-- ฟอร์มเชิญนักเรียน -->
+    <form method="POST" action="{{ url_for('teacher.invite_student', classroom_id=classroom.id) }}" class="inline">
+        <label for="student_id" class="block mb-2 font-semibold text-gray-700">เชิญนักเรียน</label>
+        <!-- ใน classroom_detail.html ส่วนของปุ่มเชิญนักเรียน -->
+<select name="student_id" id="student_id" class="border rounded px-2 py-1 w-64">
+  {% for student in available_students %}
+    <option value="{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>
+  {% endfor %}
+  {% if available_students|length == 0 %}
+    <option disabled>ไม่มีนักเรียนที่สามารถเพิ่มได้</option>
+  {% endif %}
+</select>
+        <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 mt-2">เชิญ</button>
+      </form>
+      
+  </div>
+</div>
+
+<script>
+  // ฟังก์ชันสำหรับเปิด/ปิดกล่องยืนยันการลบ
+  function toggleConfirmDelete(studentId) {
+    const element = document.getElementById(`confirm-delete-${studentId}`);
+    element.classList.toggle('hidden');
+  }
+</script>
+{% endblock %}
