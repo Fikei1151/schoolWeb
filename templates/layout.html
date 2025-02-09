@@ -25,9 +25,7 @@
     }
   </script>
 </head>
-
-<body class="bg-white text-gray-800 font-sans">
-
+<body class="bg-white text-gray-800 font-sans flex flex-col min-h-screen">
 <!-- 
   ==============================================
   ส่วน Navbar บนสุด (สีชมพูเข้ม) 
@@ -234,10 +232,12 @@
           </a>
         </li>
         <li>
-          <a href="#" class="hover:text-pink-600">
+          <a href="{{ url_for('student.student_grades') }}"
+             class="hover:text-pink-600 {% if request.path == url_for('student.student_grades') %}font-bold text-pink-800{% endif %}">
             ดูเกรดของฉัน
           </a>
         </li>
+        
 
       {% else %}
         <!-- สำหรับผู้เยี่ยมชม หรือยังไม่ล็อกอิน -->
@@ -277,7 +277,7 @@
   ส่วน Footer (ถ้าต้องการ)
   ==============================================
 -->
-<footer class="bg-pink-600 text-white mt-10">
+<footer class="bg-pink-600 text-white mt-auto">
   <div class="container mx-auto px-4 py-4 text-center text-sm">
     © 2025 School Project. All rights reserved.
   </div>

@@ -3,7 +3,9 @@ from functools import wraps
 from database import db
 from models.user import User
 from models.classroom import Classroom, ClassroomStudents
-from models.subject import Subject, ClassroomSubjects,Grade
+from models.subject import Subject, ClassroomSubjects,Grade, subject_teachers
+from models.academic import AcademicSettings # import AcademicSettings model เพิ่มเติม
+
 teacher_bp = Blueprint('teacher', __name__)
 
 def teacher_required(f):
@@ -156,37 +158,51 @@ def teacher_manage_subjects():
     return render_template('teacher/manage_subjects.html', subjects=subjects)
 
 
-# ปรับปรุงการจัดการรายวิชาในห้องเรียน
 @teacher_bp.route('/teacher/classrooms/<int:classroom_id>/subjects', methods=['GET', 'POST'])
 @teacher_required
 def classroom_subjects(classroom_id):
-    """ครูสามารถเพิ่มรายวิชาในห้องที่ตนเป็นผู้ดูแลเท่านั้น"""
+    """ครูสามารถเพิ่มรายวิชาให้ห้องเรียนที่ตนดูแล และกำหนดครูที่สอนในห้องเรียน"""
     teacher_id = session.get('user_id')
-    # ดึงห้องเรียนที่ teacher_id = ครูที่ล็อกอินอยู่
     classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
-    
+
     if request.method == 'POST':
-        # รับ subject_ids (รายวิชาที่ครูเลือกเพิ่ม)
         subject_ids = request.form.getlist('subject_ids')
         for subject_id in subject_ids:
-            # ตรวจสอบว่ามีใน classroom_subjects แล้วหรือไม่
             existing = ClassroomSubjects.query.filter_by(classroom_id=classroom.id, subject_id=subject_id).first()
             if not existing:
-                association = ClassroomSubjects(classroom_id=classroom.id, subject_id=subject_id)
-                db.session.add(association)
-        db.session.commit()
-        flash('เพิ่มรายวิชาในห้องเรียนสำเร็จ', 'success')
-        return redirect(url_for('teacher.classroom_subjects', classroom_id=classroom.id))
-    
-    # ดึงข้อมูลรายวิชาทั้งหมด
-    all_subjects = Subject.query.all()
-    # ดึงรายวิชาที่มีในห้องอยู่แล้ว (เป็น subject_id)
-    current_subjects = [cs.subject_id for cs in ClassroomSubjects.query.filter_by(classroom_id=classroom.id).all()]
+                assigned_teacher = request.form.get(f'teacher_for_{subject_id}')
+                new_cs = ClassroomSubjects(
+                    classroom_id=classroom.id,
+                    subject_id=subject_id,
+                    teacher_id=assigned_teacher if assigned_teacher else None
+                )
+                db.session.add(new_cs)
 
-    return render_template('teacher/classroom_subjects.html',
-                           classroom=classroom,
-                           all_subjects=all_subjects,
-                           current_subjects=current_subjects)
+        db.session.commit()
+        flash('เพิ่มรายวิชาและกำหนดครูผู้สอนสำเร็จ', 'success')
+        return redirect(url_for('teacher.classroom_subjects', classroom_id=classroom.id))
+
+    all_subjects = Subject.query.all()
+
+    # ✅ ดึงครูทั้งหมดที่สามารถสอนรายวิชาได้
+    subject_teachers_mapping = {
+        subject.id: User.query.join(subject_teachers)
+                              .filter(subject_teachers.c.subject_id == subject.id)
+                              .all()
+        for subject in all_subjects
+    }
+
+    current_subjects = ClassroomSubjects.query.filter_by(classroom_id=classroom.id).all()
+    
+
+    return render_template(
+        'teacher/classroom_subjects.html',
+        classroom=classroom,
+        all_subjects=all_subjects,
+        subject_teachers_mapping=subject_teachers_mapping,
+        current_subjects=current_subjects
+ 
+    )
 
 @teacher_bp.route('/teacher/classrooms/<int:classroom_id>/subjects/<int:subject_id>/delete', methods=['POST'])
 @teacher_required
@@ -208,19 +224,23 @@ def remove_subject(classroom_id, subject_id):
 @teacher_bp.route('/teacher/grade_management')
 @teacher_required
 def grade_management():
-    """หน้าแสดงห้องเรียนที่ครูสอนและรายวิชาที่สอนในแต่ละห้อง"""
+    """หน้าแสดงห้องเรียนและรายวิชาที่ครูสอน"""
     teacher_id = session.get('user_id')
-    
-    # ดึงห้องเรียนที่ครูสอน
-    classrooms = Classroom.query.filter_by(teacher_id=teacher_id).all()
-    
-    # ดึงรายวิชาที่ครูสอนในแต่ละห้องเรียน
-    classroom_subjects = {}
-    for classroom in classrooms:
-        subjects = Subject.query.join(ClassroomSubjects).filter(ClassroomSubjects.classroom_id == classroom.id).all()
-        classroom_subjects[classroom.id] = subjects
-    
-    return render_template('teacher/grade_management.html', classrooms=classrooms, classroom_subjects=classroom_subjects)
+
+    # ดึงเฉพาะห้องเรียนที่มีรายวิชาที่ครูนี้เป็นผู้สอน
+    classroom_subjects = ClassroomSubjects.query.filter_by(teacher_id=teacher_id).all()
+
+    # จัดกลุ่มเป็นห้องเรียน -> รายวิชาที่ครูสอน
+    classrooms = {}
+    for cs in classroom_subjects:
+        if cs.classroom.id not in classrooms:
+            classrooms[cs.classroom.id] = {
+                "name": cs.classroom.name,
+                "subjects": []
+            }
+        classrooms[cs.classroom.id]["subjects"].append(cs.subject)
+
+    return render_template('teacher/grade_management.html', classrooms=classrooms)
 
 @teacher_bp.route('/teacher/grade_management/<int:classroom_id>/<int:subject_id>')
 @teacher_required
@@ -242,17 +262,28 @@ def grade_students(classroom_id, subject_id):
 def enter_grades(classroom_id, subject_id):
     """หน้าป้อนเกรดสำหรับนักเรียนในห้องเรียนและรายวิชาที่เลือก"""
     teacher_id = session.get('user_id')
-    
+
     # ตรวจสอบว่าห้องเรียนและรายวิชาเป็นของครูที่ล็อกอินอยู่
     classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
     subject = Subject.query.filter_by(id=subject_id).first_or_404()
-    
+
     # ดึงนักเรียนที่อยู่ในห้องเรียนนี้
     students = User.query.join(ClassroomStudents).filter(ClassroomStudents.classroom_id == classroom.id).all()
-    
-    # ดึงเทอมและระดับชั้นปัจจุบันจากห้องเรียน
-    term = f"{classroom.semester}/{classroom.academic_year}"  # เช่น "1/2568"
-    grade_level = classroom.grade_level  # เช่น "ป.1"
+
+    # ดึงเทอมและระดับชั้นปัจจุบันจากห้องเรียน (เดิม)
+    # term = f"{classroom.semester}/{classroom.academic_year}"  # เช่น "1/2568"
+    # grade_level = classroom.grade_level  # เช่น "ป.1"
+
+    # ดึงปีการศึกษาและเทอมปัจจุบันจาก AcademicSettings
+    academic_setting = AcademicSettings.query.first() # ดึงข้อมูล AcademicSettings ล่าสุด (มี record เดียว)
+    if academic_setting:
+        current_year = academic_setting.current_year
+        current_semester = academic_setting.current_semester
+    else:
+        # กรณีไม่มีข้อมูล AcademicSettings (ควรมีเสมอ) หรือจัดการ error ตามเหมาะสม
+        flash("ไม่พบข้อมูลปีการศึกษาและเทอมปัจจุบัน กรุณาตั้งค่าระบบ", 'error')
+        return redirect(url_for('teacher.grade_students', classroom_id=classroom_id, subject_id=subject_id))
+
 
     if request.method == 'POST':
         for student in students:
@@ -260,13 +291,17 @@ def enter_grades(classroom_id, subject_id):
             if grade_value:
                 # ดึงค่า education_level จาก user ของนักเรียน
                 education_level = student.education_level
+                term = f"{current_semester}/{current_year}" # สร้าง term จากข้อมูล AcademicSettings
+                grade_level = classroom.grade_level
 
                 # ตรวจสอบว่ามีเกรดอยู่แล้วหรือไม่
                 grade = Grade.query.filter_by(
-                    student_id=student.id, 
-                    subject_id=subject_id, 
-                    term=term, 
-                    grade_level=grade_level
+                    student_id=student.id,
+                    subject_id=subject_id,
+                    term=term,
+                    grade_level=grade_level,
+                    academic_year=current_year, # เพิ่ม academic_year ในการ query
+                    semester=current_semester     # เพิ่ม semester ในการ query
                 ).first()
                 if grade:
                     grade.grade = grade_value  # อัปเดตเกรดถ้ามีอยู่แล้ว
@@ -278,18 +313,49 @@ def enter_grades(classroom_id, subject_id):
                         grade=grade_value,
                         term=term,
                         grade_level=grade_level,
-                        education_level=education_level  # เพิ่มค่า education_level
+                        education_level=education_level,  # เพิ่มค่า education_level
+                        academic_year=current_year,      # เพิ่ม academic_year
+                        semester=current_semester          # เพิ่ม semester
                     )
                     db.session.add(new_grade)
         db.session.commit()
         flash('บันทึกเกรดสำเร็จ', 'success')
         return redirect(url_for('teacher.grade_students', classroom_id=classroom_id, subject_id=subject_id))
-    
+
     # ดึงเกรดที่มีอยู่แล้ว (ถ้ามี) สำหรับแสดงผล
+    term = f"{current_semester}/{current_year}" # สร้าง term จากข้อมูล AcademicSettings
+    grade_level = classroom.grade_level
     grades = {grade.student_id: grade.grade for grade in Grade.query.filter_by(
-        subject_id=subject_id, 
-        term=term, 
-        grade_level=grade_level
+        subject_id=subject_id,
+        term=term,
+        grade_level=grade_level,
+        academic_year=current_year, # เพิ่ม academic_year ในการ query
+        semester=current_semester     # เพิ่ม semester ในการ query
     ).all()}
-    
+
     return render_template('teacher/enter_grades.html', classroom=classroom, subject=subject, students=students, grades=grades)
+
+@teacher_bp.route('/teacher/classrooms/<int:classroom_id>/subjects/<int:subject_id>/update_teacher', methods=['POST'])
+@teacher_required
+def update_subject_teacher(classroom_id, subject_id):
+    """ อัปเดตครูผู้สอนของรายวิชาในห้องเรียน (สำหรับครู) """
+    teacher_id = session.get('user_id')
+
+    # ตรวจสอบว่าครูมีสิทธิ์จัดการห้องนี้
+    classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
+
+    # ตรวจสอบว่ารายวิชานี้อยู่ในห้องนี้หรือไม่
+    classroom_subject = ClassroomSubjects.query.filter_by(classroom_id=classroom.id, subject_id=subject_id).first_or_404()
+
+    # รับค่า teacher_id ที่ครูเลือก
+    new_teacher_id = request.form.get('teacher_id')
+
+    # อัปเดตครูผู้สอน
+    if new_teacher_id:
+        classroom_subject.teacher_id = new_teacher_id
+    else:
+        classroom_subject.teacher_id = None  # ถ้าไม่ได้เลือก ให้เป็น None
+
+    db.session.commit()
+    flash('อัปเดตครูผู้สอนเรียบร้อย', 'success')
+    return redirect(url_for('teacher.classroom_subjects', classroom_id=classroom_id))

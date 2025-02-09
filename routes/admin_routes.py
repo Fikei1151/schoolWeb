@@ -5,7 +5,7 @@ from models.user import User
 from models.academic import AcademicSettings
 from models.classroom import Classroom, ClassroomStudents
 from models.subject import Subject
-from models.subject import Subject, ClassroomSubjects
+from models.subject import Subject, ClassroomSubjects, subject_teachers
 admin_bp = Blueprint('admin', __name__)
 
 
@@ -76,32 +76,51 @@ def academic_settings():
 
     return render_template('admin/academic_settings.html', setting=setting)
 
+# admin_routes.py
+
 @admin_bp.route('/admin/create_classroom', methods=['GET', 'POST'])
 @admin_required
 def create_classroom():
-    # ใช้ AcademicSettings ปัจจุบันเป็นค่า default
+    """สร้างห้องเรียน โดยตั้งชื่อห้องอัตโนมัติ"""
     setting = AcademicSettings.query.first()
     if request.method == 'POST':
-        name = request.form.get('name')
-        education_level = request.form.get('education_level')  # "primary" / "secondary"
+        education_level_input = request.form.get('education_level')
         grade_level = request.form.get('grade_level')
+        room_number = request.form.get('room_number')
         teacher_id = request.form.get('teacher_id')
 
+        # แปลง education_level เป็นภาษาไทย
+        if education_level_input == 'primary':
+            education_level = 'ประถมศึกษา'
+            prefix = 'ป.'
+        elif education_level_input == 'secondary':
+            education_level = 'มัธยมศึกษา'
+            prefix = 'ม.'
+        else:
+            education_level = education_level_input
+            prefix = ''
+
+        # **สร้างชื่อห้องอัตโนมัติ**
+        auto_name = f"{prefix}{grade_level}/{room_number}"
+
         classroom = Classroom(
-            name=name,
+            name=auto_name,
             education_level=education_level,
             grade_level=int(grade_level),
-            academic_year=setting.current_year ,
-            semester=setting.current_semester ,
+            room_number=int(room_number),
+            creation_year=setting.current_year,
+            semester=setting.current_semester,
             teacher_id=int(teacher_id) if teacher_id else None
         )
+
         db.session.add(classroom)
         db.session.commit()
-        flash("Classroom created.", 'success')
+        flash("Classroom created successfully.", 'success')
         return redirect(url_for('admin.create_classroom'))
 
     teachers = User.query.filter_by(role='teacher').all()
     return render_template('admin/create_classroom.html', teachers=teachers)
+
 
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/add_student', methods=['GET', 'POST'])
 @admin_required
@@ -144,29 +163,40 @@ def add_student_to_classroom(classroom_id):
 
 
 
-@admin_bp.route('/admin/upgrade_classrooms')
+@admin_bp.route('/admin/upgrade_classrooms', methods=['GET', 'POST'])
 @admin_required
 def upgrade_classrooms():
-    # ตัวอย่าง logic อย่างง่าย
-    classrooms = Classroom.query.all()
-    for cls in classrooms:
-        # ตัวอย่าง: ถ้า grade_level < 6 => grade_level+1, อื่น ๆ ค่อยออกแบบเอง
-        if cls.grade_level < 6:
-            cls.grade_level += 1
-    db.session.commit()
-    flash("All classrooms upgraded (where possible).", 'success')
-    return redirect(url_for('admin.create_classroom'))
+    """หน้าอัปเกรดห้องเรียน แสดงเฉพาะห้องที่ยังสามารถอัปเกรดได้"""
+    if request.method == 'POST':
+        selected_classrooms = request.form.getlist('classroom_ids')  # รับค่าห้องเรียนที่เลือก
+
+        for class_id in selected_classrooms:
+            classroom = Classroom.query.get(class_id)
+            if classroom and classroom.grade_level < 7:
+                classroom.grade_level += 1
+                # อัปเดตชื่อห้องเรียนใหม่ (เช่น ป.1/1 → ป.2/1)
+                prefix = 'ป.' if classroom.education_level == 'ประถมศึกษา' else 'ม.'
+                classroom.name = f"{prefix}{classroom.grade_level}/{classroom.room_number}"
+
+        db.session.commit()
+        flash("อัปเกรดห้องเรียนสำเร็จ!", 'success')
+        return redirect(url_for('admin.upgrade_classrooms'))
+
+    # ดึงเฉพาะห้องที่ยังสามารถอัปเกรดได้ (grade_level < 7)
+    classrooms = Classroom.query.filter(Classroom.grade_level < 7).all()
+    return render_template('admin/upgrade_classrooms.html', classrooms=classrooms)
 
 
 # 1. หน้าแสดงห้องเรียนทั้งหมด
 @admin_bp.route('/admin/classrooms', methods=['GET', 'POST'])
 @admin_required
 def list_classrooms():
-    search_query = request.form.get('search')  # ค้นหาห้องเรียน
+    search_query = request.form.get('search')
     if search_query:
         classrooms = Classroom.query.filter(Classroom.name.contains(search_query)).all()
     else:
         classrooms = Classroom.query.all()
+
     return render_template('admin/classrooms.html', classrooms=classrooms)
 
 # 2. หน้าแสดงรายละเอียดห้องเรียน
@@ -177,13 +207,16 @@ def classroom_detail(classroom_id):
     students = User.query.join(ClassroomStudents).filter(ClassroomStudents.classroom_id == classroom.id).all()
     subjects = Subject.query.join(ClassroomSubjects).filter(ClassroomSubjects.classroom_id == classroom.id).all()
     teachers = User.query.filter_by(role='teacher').all()
+    
     return render_template(
         'admin/classroom_detail.html',
         classroom=classroom,
         students=students,
         subjects=subjects,
-        teachers=teachers
+        teachers=teachers,
+        creation_year=classroom.creation_year  # ส่งค่า creation_year ไปยัง template
     )
+
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/remove-subject/<int:subject_id>', methods=['POST'])
 @admin_required
 def remove_subject_from_classroom(classroom_id, subject_id):
@@ -205,17 +238,45 @@ def remove_student_from_classroom(classroom_id, student_id):
     return redirect(url_for('admin.classroom_detail', classroom_id=classroom_id))
 
 # 3. แก้ไขชื่อห้องเรียน
+
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/edit', methods=['GET', 'POST'])
 @admin_required
 def edit_classroom(classroom_id):
+    """ให้ Admin สามารถแก้ไขข้อมูลห้องเรียน และอัปเดตชื่อห้องอัตโนมัติ"""
     classroom = Classroom.query.get_or_404(classroom_id)
+
     if request.method == 'POST':
-        new_name = request.form.get('name')
-        classroom.name = new_name
+        education_level_input = request.form.get('education_level')
+        grade_level = request.form.get('grade_level')
+        room_number = request.form.get('room_number')
+        teacher_id = request.form.get('teacher_id')
+
+        # แปลง Education Level
+        if education_level_input == 'primary':
+            education_level = 'ประถมศึกษา'
+            prefix = 'ป.'
+        elif education_level_input == 'secondary':
+            education_level = 'มัธยมศึกษา'
+            prefix = 'ม.'
+        else:
+            education_level = education_level_input
+            prefix = ''
+
+        # อัปเดตค่าต่าง ๆ
+        classroom.education_level = education_level
+        classroom.grade_level = int(grade_level)
+        classroom.room_number = int(room_number)
+        classroom.teacher_id = int(teacher_id) if teacher_id else None
+
+        # **อัปเดตชื่อห้องอัตโนมัติ**
+        classroom.name = f"{prefix}{classroom.grade_level}/{classroom.room_number}"
+
         db.session.commit()
-        flash('Classroom name updated.', 'success')
+        flash('แก้ไขข้อมูลห้องเรียนสำเร็จ', 'success')
         return redirect(url_for('admin.classroom_detail', classroom_id=classroom.id))
-    return render_template('admin/edit_classroom.html', classroom=classroom)
+
+    teachers = User.query.filter_by(role='teacher').all()
+    return render_template('admin/edit_classroom.html', classroom=classroom, teachers=teachers)
 
 # 4. ลบห้องเรียน
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/delete', methods=['POST'])
@@ -250,42 +311,79 @@ def assign_teacher(classroom_id):
     return redirect(url_for('admin.classroom_detail', classroom_id=classroom.id))
 
 
-
-
-
-
-
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/subjects', methods=['GET', 'POST'])
 @admin_required
 def admin_classroom_subjects(classroom_id):
     """
-    สำหรับ Admin: เพิ่ม/ลบ วิชาในห้องเรียนใดก็ได้
+    แอดมินสามารถเพิ่ม/ลบ รายวิชาในห้องเรียน และกำหนดครูที่สอนวิชานั้นๆ ได้
     """
     classroom = Classroom.query.get_or_404(classroom_id)
 
     if request.method == 'POST':
         subject_ids = request.form.getlist('subject_ids')
-        for s_id in subject_ids:
+        
+        for subject_id in subject_ids:
             existing = ClassroomSubjects.query.filter_by(
                 classroom_id=classroom.id, 
-                subject_id=s_id
+                subject_id=subject_id
             ).first()
+
             if not existing:
-                new_cs = ClassroomSubjects(classroom_id=classroom.id, subject_id=s_id)
+                assigned_teacher = request.form.get(f'teacher_for_{subject_id}')
+                new_cs = ClassroomSubjects(
+                    classroom_id=classroom.id, 
+                    subject_id=subject_id, 
+                    teacher_id=assigned_teacher if assigned_teacher else None
+                )
                 db.session.add(new_cs)
+
         db.session.commit()
         flash('เพิ่มรายวิชาในห้องเรียนสำเร็จ', 'success')
         return redirect(url_for('admin.admin_classroom_subjects', classroom_id=classroom.id))
 
     all_subjects = Subject.query.all()
-    current_subject_ids = [cs.subject_id for cs in 
-                           ClassroomSubjects.query.filter_by(classroom_id=classroom.id)]
+
+    # ✅ ดึงเฉพาะครูที่สามารถสอนแต่ละรายวิชา
+    subject_teachers_mapping = {
+        subject.id: User.query.join(subject_teachers)
+                              .filter(subject_teachers.c.subject_id == subject.id)
+                              .all()
+        for subject in all_subjects
+    }
+
+    current_subjects = ClassroomSubjects.query.filter_by(classroom_id=classroom.id).all()
+
     return render_template(
         'admin/classroom_subjects.html',
         classroom=classroom,
         all_subjects=all_subjects,
-        current_subject_ids=current_subject_ids
+        subject_teachers_mapping=subject_teachers_mapping,
+        current_subjects=current_subjects
     )
+
+
+@admin_bp.route('/admin/classrooms/<int:classroom_id>/subjects/update_teachers', methods=['POST'])
+@admin_required
+def update_subject_teachers(classroom_id):
+    """ อัปเดตครูผู้สอนของหลายรายวิชาในห้องเรียน """
+    classroom = Classroom.query.get_or_404(classroom_id)
+
+    for subject_id in request.form:
+        if subject_id.startswith("teacher_for_"):  # ตรวจสอบชื่อ input
+            real_subject_id = int(subject_id.replace("teacher_for_", ""))
+            new_teacher_id = request.form.get(subject_id)
+
+            classroom_subject = ClassroomSubjects.query.filter_by(
+                classroom_id=classroom.id, subject_id=real_subject_id
+            ).first()
+
+            if classroom_subject:
+                classroom_subject.teacher_id = new_teacher_id if new_teacher_id else None
+
+    db.session.commit()
+    flash('อัปเดตครูผู้สอนเรียบร้อย', 'success')
+    return redirect(url_for('admin.admin_classroom_subjects', classroom_id=classroom_id))
+
 
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/subjects/<int:subject_id>/delete', methods=['POST'])
 @admin_required
@@ -373,3 +471,19 @@ def add_student_to_classroom_all():
     ).all()
     return render_template('admin/add_student_to_classroom_all.html', classrooms=classrooms, students=available_students )
 
+
+@admin_bp.route('/admin/classrooms/<int:classroom_id>/subjects/<int:subject_id>/assign-teacher', methods=['POST'])
+@admin_required
+def assign_teacher_to_subject(classroom_id, subject_id):
+    """ให้แอดมินเปลี่ยนครูที่สอนวิชาในห้องเรียน"""
+    classroom_subject = ClassroomSubjects.query.filter_by(classroom_id=classroom_id, subject_id=subject_id).first_or_404()
+    
+    teacher_id = request.form.get('teacher_id')
+    if teacher_id == "none":
+        classroom_subject.teacher_id = None
+    else:
+        classroom_subject.teacher_id = int(teacher_id)
+    
+    db.session.commit()
+    flash("อัปเดตครูผู้สอนสำเร็จ", "success")
+    return redirect(url_for('admin.admin_classroom_subjects', classroom_id=classroom_id))

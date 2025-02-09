@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% block title %}อัปเกรดห้องเรียน{% endblock %}
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+  <h1 class="text-2xl font-bold mb-4">อัปเกรดห้องเรียน</h1>
+
+  <form method="POST">
+    <table class="w-full border-collapse">
+        <thead>
+            <tr class="bg-pink-100">
+              <th class="border p-2">
+                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()"> เลือกทั้งหมด
+              </th>
+              <th class="border p-2">ชื่อห้องเรียน</th>
+              <th class="border p-2">ระดับชั้น</th>
+              <th class="border p-2">ปีการศึกษาที่สร้าง</th>
+              <th class="border p-2">ครูผู้ดูแล</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for classroom in classrooms %}
+              <tr>
+                <td class="border p-2 text-center">
+                  <input type="checkbox" name="classroom_ids" value="{{ classroom.id }}">
+                </td>
+                <td class="border p-2">{{ classroom.name }}</td>
+                <td class="border p-2">{{ classroom.education_level }}</td>
+                <td class="border p-2">{{ classroom.creation_year }}</td>  <!-- แสดงปีที่สร้าง -->
+                <td class="border p-2">
+                  {% if classroom.teacher %}
+                    {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
+                  {% else %}
+                    <i>None</i>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          
+    </table>
+
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-4">
+      อัปเกรดห้องเรียน
+    </button>
+  </form>
+</div>
+
+<script>
+  function toggleSelectAll() {
+    var checkboxes = document.querySelectorAll('input[name="classroom_ids"]');
+    var selectAll = document.getElementById('selectAll');
+    checkboxes.forEach(checkbox => checkbox.checked = selectAll.checked);
+  }
+</script>
+{% endblock %}

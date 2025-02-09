@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+{% block title %}เกรดของฉัน{% endblock %}
+{% block content %}
+
+<div class="bg-white p-6 rounded shadow">
+  <h2 class="text-2xl font-bold mb-4 text-pink-600">เกรดของฉัน</h2>
+
+  <!-- แสดงชื่อนักเรียน -->
+  <div class="mb-4 text-lg">
+    <strong>ชื่อ:</strong> {{ student.first_name }} {{ student.last_name }}
+  </div>
+
+  <!-- ฟอร์มเลือกปี, ชั้น และ เทอม -->
+  <form method="GET" class="mb-4 flex flex-wrap items-center space-x-4">
+    <label for="year">ปีการศึกษา:</label>
+    <select name="year" id="year" class="border px-2 py-1 rounded">
+      {% for year in available_years %}
+        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="level">ระดับชั้น:</label>
+    <select name="level" id="level" class="border px-2 py-1 rounded">
+      {% for level in available_levels %}
+        <option value="{{ level }}" {% if level == selected_level %}selected{% endif %}>
+          {% if level <= 6 %}ป.{{ level }}{% else %}ม.{{ level - 6 }}{% endif %}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="semester">เทอม:</label>
+    <select name="semester" id="semester" class="border px-2 py-1 rounded">
+      <option value="1" {% if selected_semester == 1 %}selected{% endif %}>1</option>
+      <option value="2" {% if selected_semester == 2 %}selected{% endif %}>2</option>
+    </select>
+
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">ดูเกรด</button>
+  </form>
+
+  <!-- ตารางแสดงเกรด -->
+  <table class="w-full border-collapse border">
+    <thead>
+      <tr class="bg-pink-100">
+        <th class="border p-2">รหัสวิชา</th>
+        <th class="border p-2">ชื่อวิชา</th>
+        <th class="border p-2">หน่วยกิต</th>
+        <th class="border p-2">เกรด</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grade in grades %}
+        <tr>
+          <td class="border p-2">{{ grade.subject.code }}</td>
+          <td class="border p-2">{{ grade.subject.name }}</td>
+          <td class="border p-2 text-center">{{ grade.subject.credits }}</td>
+          <td class="border p-2 text-center">{{ grade.grade }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4" class="border p-4 text-center text-gray-500">ไม่มีข้อมูลเกรดสำหรับช่วงที่เลือก</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- แสดงเกรดเฉลี่ย -->
+  {% if gpa is not none %}
+  <div class="mt-4 text-lg">
+    <strong>เกรดเฉลี่ย (GPA):</strong> {{ gpa }}
+  </div>
+  {% endif %}
+
+  <!-- ปุ่มดาวน์โหลด PDF -->
+  <div class="mt-4">
+    <a href="{{ url_for('student.download_grades_pdf', year=selected_year, level=selected_level, semester=selected_semester) }}"
+       class="bg-green-600 text-white px-4 py-2 rounded">ดาวน์โหลด PDF</a>
+  </div>
+</div>
+
+{% endblock %}

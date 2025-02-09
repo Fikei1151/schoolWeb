@@ -4,7 +4,10 @@
 {% block content %}
 <div class="bg-white p-6 rounded shadow">
   <h1 class="text-2xl font-bold mb-4 text-pink-600">รายละเอียดห้องเรียน: {{ classroom.name }}</h1>
-
+  <div class="mb-4">
+    <strong>ปีการศึกษาที่สร้าง:</strong> {{ classroom.creation_year }}
+  </div>
+  
   <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=True) %}
     {% if messages %}
@@ -105,6 +108,11 @@
    class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
   เชิญนักเรียนเพิ่ม
 </a>
+<a href="{{ url_for('admin.edit_classroom', classroom_id=classroom.id) }}" 
+   class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded">
+ แก้ไขห้องเรียน
+</a>
+
     <a href="{{ url_for('admin.admin_classroom_subjects', classroom_id=classroom.id) }}"
        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">จัดการรายวิชา</a>
     <form method="POST" action="{{ url_for('admin.delete_classroom', classroom_id=classroom.id) }}" class="inline">

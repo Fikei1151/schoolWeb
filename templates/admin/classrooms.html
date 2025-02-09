@@ -10,12 +10,18 @@
            class="border p-2 rounded w-1/2">
     <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">ค้นหา</button>
   </form>
+  <a href="{{ url_for('admin.upgrade_classrooms') }}" 
+  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded inline-block mb-4">
+ อัปเกรดห้องเรียน
+</a>
 
   <!-- รายการห้องเรียน -->
   <table class="w-full border-collapse">
     <thead>
       <tr class="bg-pink-100">
         <th class="border p-2">ชื่อห้องเรียน</th>
+        <th class="border p-2">ระดับชั้น</th>
+        <th class="border p-2">ปีการศึกษาที่สร้าง</th>
         <th class="border p-2">ครูผู้ดูแล</th>
         <th class="border p-2">ตัวเลือก</th>
       </tr>
@@ -24,6 +30,8 @@
       {% for classroom in classrooms %}
         <tr>
           <td class="border p-2">{{ classroom.name }}</td>
+          <td class="border p-2">{{ classroom.education_level }}</td>
+          <td class="border p-2">{{ classroom.creation_year }}</td>  <!-- แสดงปีที่สร้าง -->
           <td class="border p-2">
             {% if classroom.teacher %}
               {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
@@ -38,6 +46,7 @@
         </tr>
       {% endfor %}
     </tbody>
+    
   </table>
 </div>
 {% endblock %}

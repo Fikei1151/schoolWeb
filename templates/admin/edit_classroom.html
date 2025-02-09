@@ -1,15 +1,45 @@
 {% extends 'layout.html' %}
-{% block title %}แก้ไขชื่อห้องเรียน{% endblock %}
+{% block title %}แก้ไขห้องเรียน{% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4">แก้ไขชื่อห้องเรียน</h1>
+<div class="max-w-lg mx-auto bg-white p-6 shadow rounded">
+  <h2 class="text-2xl font-bold mb-4">Edit Classroom</h2>
   <form method="POST">
+    
     <div class="mb-4">
-      <label class="block mb-1">ชื่อห้องเรียนใหม่</label>
-      <input type="text" name="name" value="{{ classroom.name }}" class="border w-full p-2 rounded" required>
+      <label class="block mb-1">Education Level</label>
+      <select name="education_level" class="border w-full p-2 rounded">
+        <option value="primary" {% if classroom.education_level == "ประถมศึกษา" %}selected{% endif %}>ประถมศึกษา (Primary)</option>
+        <option value="secondary" {% if classroom.education_level == "มัธยมศึกษา" %}selected{% endif %}>มัธยมศึกษา (Secondary)</option>
+      </select>
     </div>
-    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
-      บันทึก
+
+    <div class="mb-4">
+      <label class="block mb-1">Grade Level (1-6)</label>
+      <input type="number" name="grade_level" min="1" max="6" value="{{ classroom.grade_level }}"
+             class="border w-full p-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+      <label class="block mb-1">Room Number</label>
+      <input type="number" name="room_number" min="1" value="{{ classroom.room_number }}"
+             class="border w-full p-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+      <label class="block mb-1">Assign Teacher (Optional)</label>
+      <select name="teacher_id" class="border w-full p-2 rounded">
+        <option value="">-- None --</option>
+        {% for t in teachers %}
+          <option value="{{ t.id }}" {% if classroom.teacher_id == t.id %}selected{% endif %}>
+            {{ t.first_name }} {{ t.last_name }} ({{ t.citizen_id }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      Save Changes
     </button>
   </form>
 </div>

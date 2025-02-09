@@ -37,9 +37,11 @@ class ClassroomSubjects(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     classroom_id = db.Column(db.Integer, db.ForeignKey('classroom.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # ✅ เพิ่ม ForeignKey ไปยังตาราง users
 
     classroom = db.relationship('Classroom', back_populates='subjects')
     subject = db.relationship('Subject', back_populates='classrooms')
+    teacher = db.relationship('User', backref='teaching_subjects')  # ✅ ตอนนี้ใช้งานได้ถูกต้อง
 
 class Grade(db.Model):
     __tablename__ = 'grades'
@@ -49,9 +51,17 @@ class Grade(db.Model):
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     grade = db.Column(db.Float, nullable=True)
 
-    term = db.Column(db.String(10), nullable=False)  # เช่น '1/2565' (เทอม 1 ปี 2565)
-    grade_level = db.Column(db.String(10), nullable=False)  # เช่น 'ป.1', 'ม.2'
-    education_level = db.Column(db.String(50), nullable=False) 
+    term = db.Column(db.String(10), nullable=False)  # เช่น '1/2565'
+    grade_level = db.Column(db.Integer, nullable=False)  # แก้จาก String เป็น Integer
+    education_level = db.Column(db.String(50), nullable=False)  # "primary" หรือ "secondary"
+    academic_year = db.Column(db.Integer, nullable=False)  # ปีการศึกษา เช่น 2568
+    semester = db.Column(db.Integer, nullable=False)  # เทอม เช่น 1 หรือ 2
+
     student = db.relationship("User", backref="grades")
     subject = db.relationship("Subject", backref="grades")
-    
+
+    def get_grade_display(self):
+        """แปลงเลข grade_level เป็นข้อความที่เข้าใจง่าย"""
+        if self.grade_level <= 6:
+            return f"ป.{self.grade_level}"
+        return f"ม.{self.grade_level - 6}"
