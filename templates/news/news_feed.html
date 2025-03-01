@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+{% block title %}ข่าวสาร{% endblock %}
+{% block content %}
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <h1 class="text-2xl sm:text-3xl font-bold text-center text-pink-600 mb-6 sm:mb-8 drop-shadow-md">
+        📢 ข่าวสารล่าสุด
+    </h1>
+
+    {% for post in posts %}
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 border border-pink-200 relative transform hover:shadow-2xl transition-shadow duration-300">
+        <!-- ปุ่มแก้ไข/ลบ -->
+        {% if session.get('user_id') == post.author_id or session.get('role') == 'admin' %}
+        <div class="absolute top-3 right-3 flex space-x-2">
+            <a href="{{ url_for('news.edit_news', post_id=post.id) }}"
+               class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm hover:bg-yellow-600 transition-all duration-300 transform hover:-translate-y-1">
+                ✏️ แก้ไข
+            </a>
+            <form action="{{ url_for('news.delete_news', post_id=post.id) }}" method="POST"
+                  onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบโพสต์นี้?');">
+                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition-all duration-300 transform hover:-translate-y-1">
+                    🗑 ลบ
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- หัวข้อข่าว -->
+        <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">{{ post.title }}</h2>
+        <p class="text-gray-500 text-xs sm:text-sm">
+            📅 โพสต์โดย <span class="font-semibold text-pink-600">{{ post.author }}</span> - 
+            {{ post.date.strftime('%d/%m/%Y %H:%M') }}
+        </p>
+
+        <!-- รูปภาพ -->
+        {% if post.image_path %}
+        <div class="mt-4 flex justify-center">
+            <img src="{{ url_for('static', filename=post.image_path.replace('static/', '')) }}" 
+                 alt="News Image"
+                 class="rounded-lg object-cover w-full max-h-80 sm:max-h-96 shadow-md">
+        </div>
+        {% endif %}
+
+        <!-- เนื้อหาข่าว -->
+        <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed whitespace-pre-line">{{ post.content }}</p>
+
+        <!-- ไฟล์แนบ -->
+        {% if post.file_path %}
+        <div class="mt-4">
+            {% if post.file_path.endswith('.pdf') %}
+            <button onclick="togglePDF('{{ post.id }}')" 
+                    class="bg-pink-600 text-white px-4 py-2 rounded-full text-sm hover:bg-pink-700 transition-all duration-300">
+                📂 {{ post.file_path.split('/')[-1] }} (กดเพื่อดู)
+            </button>
+            <div id="pdfContainer-{{ post.id }}" class="hidden mt-3 border border-pink-200 rounded-lg overflow-hidden shadow-md">
+                <iframe src="{{ url_for('static', filename=post.file_path.replace('static/', '')) }}" 
+                        class="w-full h-80 sm:h-[500px]"></iframe>
+            </div>
+            {% else %}
+            <a href="{{ url_for('static', filename=post.file_path.replace('static/', '')) }}" target="_blank"
+               class="inline-flex items-center bg-pink-600 text-white px-4 py-2 rounded-full text-sm hover:bg-pink-700 transition-all duration-300">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                ดาวน์โหลดไฟล์แนบ
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function togglePDF(postId) {
+    let container = document.getElementById("pdfContainer-" + postId);
+    container.classList.toggle("hidden");
+}
+</script>
+{% endblock %}

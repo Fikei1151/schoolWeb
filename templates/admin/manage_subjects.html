@@ -1,56 +1,69 @@
 {% extends 'layout.html' %}
 {% block title %}จัดการรายวิชา (Admin){% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4 text-pink-600">จัดการรายวิชา (Admin)</h1>
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            จัดการรายวิชา (Admin)
+        </h1>
 
-  <!-- ฟอร์มสร้างรายวิชา -->
-  <form method="POST" class="mb-6 bg-pink-50 p-4 rounded">
-    <div class="mb-2">
-      <label>รหัสวิชา:</label>
-      <input type="text" name="code" class="border rounded w-full px-2 py-1" required>
-    </div>
-    <div class="mb-2">
-      <label>ชื่อวิชา:</label>
-      <input type="text" name="name" class="border rounded w-full px-2 py-1" required>
-    </div>
-    <div class="mb-2">
-      <label>หน่วยกิต:</label>
-      <input type="number" name="credits" class="border rounded w-full px-2 py-1" min="0" required>
-    </div>
-    <div class="mb-2">
-      <label>คำอธิบาย (option):</label>
-      <textarea name="description" class="border rounded w-full px-2 py-1"></textarea>
-    </div>
-    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">บันทึก</button>
-  </form>
+        <!-- ฟอร์มสร้างรายวิชา -->
+        <form method="POST" class="mb-8 bg-pink-50 p-4 rounded-lg border border-pink-200 space-y-4">
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">รหัสวิชา:</label>
+                <input type="text" name="code" required 
+                       class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">ชื่อวิชา:</label>
+                <input type="text" name="name" required 
+                       class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">หน่วยกิต:</label>
+                <input type="number" name="credits" min="0" required 
+                       class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">คำอธิบาย (ไม่บังคับ):</label>
+                <textarea name="description" 
+                          class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm h-24 text-sm sm:text-base"></textarea>
+            </div>
+            <button type="submit" 
+                    class="w-full bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                บันทึก
+            </button>
+        </form>
 
-  <!-- ตารางแสดงรายวิชา -->
-  <h2 class="text-xl font-semibold mb-4">รายวิชาทั้งหมด</h2>
-  <table class="w-full border-collapse">
-    <thead class="bg-pink-100">
-      <tr>
-        <th class="border p-2">#</th>
-        <th class="border p-2">รหัสวิชา</th>
-        <th class="border p-2">ชื่อวิชา</th>
-        <th class="border p-2">หน่วยกิต</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for subj in subjects %}
-      <tr class="hover:bg-gray-100">
-        <td class="border p-2">{{ loop.index }}</td>
-        <td class="border p-2">{{ subj.code }}</td>
-        <td class="border p-2">{{ subj.name }}</td>
-        <td class="border p-2">{{ subj.credits }}</td>
-      </tr>
-      {% endfor %}
-      {% if subjects|length == 0 %}
-      <tr>
-        <td colspan="4" class="border p-4 text-center text-gray-500">ยังไม่มีรายวิชา</td>
-      </tr>
-      {% endif %}
-    </tbody>
-  </table>
+        <!-- ตารางแสดงรายวิชา -->
+        <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">รายวิชาทั้งหมด</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-pink-100 text-pink-800 text-sm sm:text-base">
+                        <th class="border border-pink-200 p-3 font-semibold">#</th>
+                        <th class="border border-pink-200 p-3 font-semibold">รหัสวิชา</th>
+                        <th class="border border-pink-200 p-3 font-semibold">ชื่อวิชา</th>
+                        <th class="border border-pink-200 p-3 font-semibold">หน่วยกิต</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subj in subjects %}
+                        <tr class="hover:bg-pink-50 transition-colors duration-300">
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ loop.index }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ subj.code }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ subj.name }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ subj.credits }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% if subjects|length == 0 %}
+                        <tr>
+                            <td colspan="4" class="border border-pink-200 p-4 text-center text-gray-500 text-sm sm:text-base">ยังไม่มีรายวิชา</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

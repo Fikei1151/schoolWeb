@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+{% block title %}อนุมัติข่าวสาร{% endblock %}
+{% block content %}
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold text-center text-pink-600 mb-6 sm:mb-8 drop-shadow-md">
+            ✅ อนุมัติข่าวสาร
+        </h1>
+
+        {% if posts %}
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-pink-100 text-pink-800 text-sm sm:text-base">
+                        <th class="border border-pink-200 p-3 font-semibold text-left">หัวข้อข่าว</th>
+                        <th class="border border-pink-200 p-3 font-semibold text-left">ผู้โพสต์</th>
+                        <th class="border border-pink-200 p-3 font-semibold text-left">วันที่โพสต์</th>
+                        <th class="border border-pink-200 p-3 font-semibold text-center">การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                    <tr class="hover:bg-pink-50 transition-colors duration-300">
+                        <td class="border border-pink-200 p-3 text-gray-800 text-sm sm:text-base">{{ post.title }}</td>
+                        <td class="border border-pink-200 p-3 text-gray-800 text-sm sm:text-base">{{ post.author.first_name }} {{ post.author.last_name }}</td>
+                        <td class="border border-pink-200 p-3 text-gray-800 text-sm sm:text-base">{{ post.date.strftime('%d/%m/%Y') }}</td>
+                        <td class="border border-pink-200 p-3 text-center">
+                            <div class="flex justify-center gap-2">
+                                <a href="{{ url_for('news.approve_post', post_id=post.id) }}" 
+                                   class="bg-pink-600 text-white px-3 py-1 rounded-full text-sm hover:bg-pink-700 transition-all duration-300">
+                                    ✅ อนุมัติ
+                                </a>
+                                <a href="{{ url_for('news.delete_news', post_id=post.id) }}" 
+                                   class="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition-all duration-300">
+                                    ❌ ลบ
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center text-sm sm:text-base mt-6">ยังไม่มีข่าวที่รอการอนุมัติ</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

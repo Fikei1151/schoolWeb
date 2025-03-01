@@ -1,28 +1,32 @@
 {% extends 'layout.html' %}
 {% block title %}จัดการเกรด{% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4 text-blue-600">จัดการเกรดของวิชาที่คุณสอน</h1>
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            จัดการเกรดของวิชาที่คุณสอน
+        </h1>
 
-  {% if classrooms %}
-    {% for classroom_id, data in classrooms.items() %}
-      <div class="mb-6 border-b pb-4">
-        <h2 class="text-xl font-semibold text-gray-700">{{ data.name }}</h2>
-        <ul class="mt-2">
-          {% for subject in data.subjects %}
-            <li class="flex justify-between items-center py-2 px-4 bg-gray-100 rounded-lg mt-2">
-              <span class="text-gray-800">{{ subject.code }} - {{ subject.name }}</span>
-              <a href="{{ url_for('teacher.grade_students', classroom_id=classroom_id, subject_id=subject.id) }}"
-                 class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                ป้อนเกรด
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p class="text-gray-500">คุณยังไม่ได้สอนวิชาใดในห้องเรียน</p>
-  {% endif %}
+        {% if classrooms %}
+            {% for classroom_id, data in classrooms.items() %}
+                <div class="mb-6 border-b border-pink-200 pb-4">
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3">{{ data.name }}</h2>
+                    <ul class="space-y-3">
+                        {% for subject in data.subjects %}
+                            <li class="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 px-4 bg-pink-50 rounded-lg transition-colors duration-300 hover:bg-pink-100">
+                                <span class="text-gray-800 text-sm sm:text-base">{{ subject.code }} - {{ subject.name }}</span>
+                                <a href="{{ url_for('teacher.grade_students', classroom_id=classroom_id, subject_id=subject.id) }}"
+                                   class="mt-2 sm:mt-0 bg-pink-600 text-white px-4 py-2 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                                    ป้อนเกรด
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500 text-center text-sm sm:text-base">คุณยังไม่ได้สอนวิชาใดในห้องเรียน</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

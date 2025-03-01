@@ -1,33 +1,38 @@
 {% extends 'layout.html' %}
 {% block title %}แก้ไขรายวิชา{% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4 text-pink-600">แก้ไขรายวิชา</h1>
+<div class="container max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            แก้ไขรายวิชา
+        </h1>
 
-  <form method="POST">
-    <div class="mb-2">
-      <label>รหัสวิชา:</label>
-      <input type="text" name="code" class="border rounded w-full px-2 py-1"
-             value="{{ subject.code }}" required>
+        <form method="POST" class="space-y-6">
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">รหัสวิชา:</label>
+                <input type="text" name="code" value="{{ subject.code }}" required 
+                       class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">ชื่อวิชา:</label>
+                <input type="text" name="name" value="{{ subject.name }}" required 
+                       class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">หน่วยกิต:</label>
+                <input type="number" name="credits" value="{{ subject.credits }}" min="0" 
+                       class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">คำอธิบาย:</label>
+                <textarea name="description" 
+                          class="mt-1 w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm h-24 text-sm sm:text-base">{{ subject.description }}</textarea>
+            </div>
+            <button type="submit" 
+                    class="w-full bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                บันทึก
+            </button>
+        </form>
     </div>
-    <div class="mb-2">
-      <label>ชื่อวิชา:</label>
-      <input type="text" name="name" class="border rounded w-full px-2 py-1"
-             value="{{ subject.name }}" required>
-    </div>
-    <div class="mb-2">
-      <label>หน่วยกิต:</label>
-      <input type="number" name="credits" class="border rounded w-full px-2 py-1"
-             value="{{ subject.credits }}" min="0">
-    </div>
-    <div class="mb-2">
-      <label>คำอธิบาย:</label>
-      <textarea name="description" class="border rounded w-full px-2 py-1">{{ subject.description }}</textarea>
-    </div>
-    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-2">
-      บันทึก
-    </button>
-  </form>
-
 </div>
 {% endblock %}

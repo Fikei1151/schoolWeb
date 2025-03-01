@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block title %}แก้ไขข้อมูลนักเรียน{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md mt-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">แก้ไขข้อมูลนักเรียน</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="col-span-2 flex justify-center">
+                <label class="relative cursor-pointer">
+                    <input type="file" name="profile_image" class="hidden" accept=".png, .jpg, .jpeg, .gif">
+                    <div class="w-32 h-32 rounded-full border-2 border-gray-300 overflow-hidden">
+                        <img src="{{ student.profile_image or url_for('static', filename='default_profile.png') }}" class="w-full h-full object-cover">
+                    </div>
+                    <p class="text-sm text-gray-600 text-center mt-2">เปลี่ยนรูปโปรไฟล์</p>
+                </label>
+            </div>
+            
+            <div>
+                <label class="text-gray-700">ชื่อ-นามสกุล (ไทย)</label>
+                <input type="text" name="full_name_th" value="{{ student.full_name_th or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">ชื่อ-นามสกุล (อังกฤษ)</label>
+                <input type="text" name="full_name_en" value="{{ student.full_name_en or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">วันเกิด</label>
+                <input type="date" name="birth_date" value="{{ student.birth_date }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">สัญชาติ</label>
+                <input type="text" name="nationality" value="{{ student.nationality or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div class="col-span-2">
+                <label class="text-gray-700">ที่อยู่</label>
+                <textarea name="address" class="w-full p-2 border rounded-lg">{{ student.address or '' }}</textarea>
+            </div>
+            <div>
+                <label class="text-gray-700">สถานภาพของผู้ปกครอง</label>
+                <input type="text" name="parent_status" value="{{ student.parent_status or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">ความพิการ</label>
+                <input type="text" name="disability" value="{{ student.disability or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">ความสามารถพิเศษ</label>
+                <input type="text" name="special_talent" value="{{ student.special_talent or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+        </div>
+
+        <h2 class="text-xl font-bold text-gray-800 mt-6">ข้อมูลผู้ปกครอง</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="text-gray-700">ชื่อ-นามสกุล</label>
+                <input type="text" name="guardian_full_name" value="{{ guardian.full_name or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">สัญชาติ</label>
+                <input type="text" name="guardian_nationality" value="{{ guardian.nationality or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">สถานภาพ</label>
+                <input type="text" name="guardian_status" value="{{ guardian.status or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">อาชีพ</label>
+                <input type="text" name="guardian_occupation" value="{{ guardian.occupation or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">สถานที่ทำงาน</label>
+                <input type="text" name="guardian_workplace" value="{{ guardian.workplace or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">ตำแหน่ง</label>
+                <input type="text" name="guardian_position" value="{{ guardian.position or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div class="col-span-2">
+                <label class="text-gray-700">ที่อยู่</label>
+                <textarea name="guardian_address" class="w-full p-2 border rounded-lg">{{ guardian.address_no or '' }} หมู่ {{ guardian.moo or '' }} ซอย {{ guardian.soi or '' }} ถนน {{ guardian.road or '' }} แขวง/ตำบล {{ guardian.sub_district or '' }} เขต/อำเภอ {{ guardian.district or '' }} จังหวัด {{ guardian.province or '' }} รหัสไปรษณีย์ {{ guardian.postal_code or '' }}</textarea>
+            </div>
+            <div>
+                <label class="text-gray-700">โทรศัพท์</label>
+                <input type="text" name="guardian_phone" value="{{ guardian.phone or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="text-gray-700">อีเมล</label>
+                <input type="email" name="guardian_email" value="{{ guardian.email or '' }}" class="w-full p-2 border rounded-lg">
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                บันทึกข้อมูล
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

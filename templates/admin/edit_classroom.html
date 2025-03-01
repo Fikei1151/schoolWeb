@@ -1,46 +1,47 @@
 {% extends 'layout.html' %}
 {% block title %}แก้ไขห้องเรียน{% endblock %}
 {% block content %}
-<div class="max-w-lg mx-auto bg-white p-6 shadow rounded">
-  <h2 class="text-2xl font-bold mb-4">Edit Classroom</h2>
-  <form method="POST">
-    
-    <div class="mb-4">
-      <label class="block mb-1">Education Level</label>
-      <select name="education_level" class="border w-full p-2 rounded">
-        <option value="primary" {% if classroom.education_level == "ประถมศึกษา" %}selected{% endif %}>ประถมศึกษา (Primary)</option>
-        <option value="secondary" {% if classroom.education_level == "มัธยมศึกษา" %}selected{% endif %}>มัธยมศึกษา (Secondary)</option>
-      </select>
+<div class="container max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            แก้ไขห้องเรียน
+        </h2>
+        <form method="POST" class="space-y-6">
+            <div>
+                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">ระดับการศึกษา</label>
+                <select name="education_level" 
+                        class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+                    <option value="primary" {% if classroom.education_level == "ประถมศึกษา" %}selected{% endif %}>ประถมศึกษา (Primary)</option>
+                    <option value="secondary" {% if classroom.education_level == "มัธยมศึกษา" %}selected{% endif %}>มัธยมศึกษา (Secondary)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">ระดับชั้น (1-6)</label>
+                <input type="number" name="grade_level" min="1" max="6" value="{{ classroom.grade_level }}" required 
+                       class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">หมายเลขห้อง</label>
+                <input type="number" name="room_number" min="1" value="{{ classroom.room_number }}" required 
+                       class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            </div>
+            <div>
+                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">มอบหมายครูผู้ดูแล (ไม่บังคับ)</label>
+                <select name="teacher_id" 
+                        class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+                    <option value="">-- ไม่มี --</option>
+                    {% for t in teachers %}
+                        <option value="{{ t.id }}" {% if classroom.teacher_id == t.id %}selected{% endif %}>
+                            {{ t.first_name }} {{ t.last_name }} ({{ t.citizen_id }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" 
+                    class="w-full bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                บันทึกการเปลี่ยนแปลง
+            </button>
+        </form>
     </div>
-
-    <div class="mb-4">
-      <label class="block mb-1">Grade Level (1-6)</label>
-      <input type="number" name="grade_level" min="1" max="6" value="{{ classroom.grade_level }}"
-             class="border w-full p-2 rounded" required>
-    </div>
-
-    <div class="mb-4">
-      <label class="block mb-1">Room Number</label>
-      <input type="number" name="room_number" min="1" value="{{ classroom.room_number }}"
-             class="border w-full p-2 rounded" required>
-    </div>
-
-    <div class="mb-4">
-      <label class="block mb-1">Assign Teacher (Optional)</label>
-      <select name="teacher_id" class="border w-full p-2 rounded">
-        <option value="">-- None --</option>
-        {% for t in teachers %}
-          <option value="{{ t.id }}" {% if classroom.teacher_id == t.id %}selected{% endif %}>
-            {{ t.first_name }} {{ t.last_name }} ({{ t.citizen_id }})
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <button type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-      Save Changes
-    </button>
-  </form>
 </div>
 {% endblock %}

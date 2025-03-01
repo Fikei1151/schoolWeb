@@ -1,65 +1,64 @@
 {% extends 'layout.html' %}
-
 {% block content %}
-<div class="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-    <h1 class="text-2xl font-bold mb-4">ห้องเรียน: {{ classroom.name }}</h1>
-    <h2 class="text-xl font-semibold mb-6">รายวิชา: {{ subject.name }}</h2>
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-4 text-pink-600 drop-shadow-md">
+            ห้องเรียน: {{ classroom.name }}
+        </h1>
+        <h2 class="text-lg sm:text-xl font-semibold mb-6 text-gray-800">รายวิชา: {{ subject.name }}</h2>
 
-    <form method="POST" onsubmit="return validateGrades()">
-        <table class="table-auto w-full border-collapse border border-gray-300 mb-4">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="border border-gray-300 px-4 py-2 text-left">ชื่อนักเรียน</th>
-                    <th class="border border-gray-300 px-4 py-2 text-left">เกรด</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for student in students %}
-                <tr class="odd:bg-white even:bg-gray-50">
-                    <td class="border border-gray-300 px-4 py-2">{{ student.first_name }} {{ student.last_name }}</td>
-                    <td class="border border-gray-300 px-4 py-2">
-                        <input 
-                            type="number" 
-                            name="grade_{{ student.id }}" 
-                            value="{{ grades.get(student.id, '') }}" 
-                            class="w-full p-2 border border-gray-300 rounded grade-input"
-                            min="0.0"
-                            max="4.0"
-                            step="0.5"
-                            required
-                        >
-                        <span class="text-red-500 text-sm hidden" id="error_{{ student.id }}">กรุณากรอกเกรดระหว่าง 1.0 ถึง 4.0</span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">บันทึกเกรด</button>
-    </form>
+        <form method="POST" onsubmit="return validateGrades()">
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-pink-100 text-pink-800 text-sm sm:text-base">
+                            <th class="border border-pink-200 p-3 font-semibold text-left">ชื่อนักเรียน</th>
+                            <th class="border border-pink-200 p-3 font-semibold text-left">เกรด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                            <tr class="odd:bg-white even:bg-pink-50 hover:bg-pink-100 transition-colors duration-300">
+                                <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ student.first_name }} {{ student.last_name }}</td>
+                                <td class="border border-pink-200 p-3">
+                                    <input type="number" name="grade_{{ student.id }}" value="{{ grades.get(student.id, '') }}" 
+                                           class="w-full p-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base grade-input"
+                                           min="0.0" max="4.0" step="0.5" required>
+                                    <span class="text-red-500 text-xs sm:text-sm hidden" id="error_{{ student.id }}">กรุณากรอกเกรดระหว่าง 0.0 ถึง 4.0</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 flex justify-start">
+                <button type="submit" 
+                        class="bg-pink-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                    บันทึกเกรด
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
-    function validateGrades() {
-        let isValid = true;
-        const gradeInputs = document.querySelectorAll('.grade-input');
-
-        gradeInputs.forEach(input => {
-            const gradeValue = parseFloat(input.value);
-            const errorSpan = document.getElementById(`error_${input.name.split('_')[1]}`);
-
-            if (isNaN(gradeValue) || gradeValue < 1.0 || gradeValue > 4.0) {
-                errorSpan.style.display = 'block';
-                isValid = false;
-            } else {
-                errorSpan.style.display = 'none';
-            }
-        });
-
-        if (!isValid) {
-            alert('กรุณาตรวจสอบเกรดให้ถูกต้อง (ต้องอยู่ระหว่าง 0.0 ถึง 4.0)');
+function validateGrades() {
+    let isValid = true;
+    const gradeInputs = document.querySelectorAll('.grade-input');
+    gradeInputs.forEach(input => {
+        const gradeValue = parseFloat(input.value);
+        const errorSpan = document.getElementById(`error_${input.name.split('_')[1]}`);
+        if (isNaN(gradeValue) || gradeValue < 0.0 || gradeValue > 4.0) {
+            errorSpan.style.display = 'block';
+            isValid = false;
+        } else {
+            errorSpan.style.display = 'none';
         }
-
-        return isValid;
+    });
+    if (!isValid) {
+        alert('กรุณาตรวจสอบเกรดให้ถูกต้อง (ต้องอยู่ระหว่าง 0.0 ถึง 4.0)');
     }
+    return isValid;
+}
 </script>
 {% endblock %}

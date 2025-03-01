@@ -1,86 +1,93 @@
 {% extends 'layout.html' %}
 {% block title %}จัดการรายวิชาในห้องเรียน{% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4 text-pink-600">จัดการรายวิชาในห้อง: {{ classroom.name }}</h1>
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            จัดการรายวิชาในห้อง: {{ classroom.name }}
+        </h1>
 
-  <!-- รายวิชาในห้องเรียน -->
-  <h2 class="text-xl font-semibold mt-6">รายวิชาในห้องเรียน</h2>
-  <table class="w-full text-left border-collapse mt-4">
-    <thead>
-      <tr class="bg-pink-100">
-        <th class="border p-2">รหัสวิชา</th>
-        <th class="border p-2">ชื่อวิชา</th>
-        <th class="border p-2 text-center">ครูผู้สอน</th>
-        <th class="border p-2 text-center">การจัดการ</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for cs in current_subjects %}
-        <tr class="hover:bg-gray-100">
-          <td class="border p-2">{{ cs.subject.code }}</td>
-          <td class="border p-2">{{ cs.subject.name }}</td>
-          <td class="border p-2 text-center">
-            <form method="POST" class="update-teacher-form" data-subject-id="{{ cs.subject.id }}">
-              <select name="teacher_id" class="border rounded px-2 py-1 w-full">
-                <option value="">-- ไม่ระบุ --</option>
-                {% for teacher in subject_teachers_mapping.get(cs.subject.id, []) %}
-                <option value="{{ teacher.id }}" {% if cs.teacher and cs.teacher.id == teacher.id %}selected{% endif %}>
-                  {{ teacher.first_name }} {{ teacher.last_name }}
-                </option>
-              {% endfor %}
-              </select>
-              <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded mt-2">อัปเดต</button>
-            </form>
-          </td>
-          <td class="border p-2 text-center">
-            <form method="POST" action="{{ url_for('teacher.remove_subject', classroom_id=classroom.id, subject_id=cs.subject.id) }}">
-              <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">ลบ</button>
-            </form>
-          </td>
-        </tr>
-      {% endfor %}
-      {% if current_subjects|length == 0 %}
-        <tr>
-          <td colspan="4" class="border p-4 text-center text-gray-500">ยังไม่มีรายวิชาในห้องเรียนนี้</td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
+        <!-- รายวิชาในห้องเรียน -->
+        <h2 class="text-lg sm:text-xl font-semibold mt-6 sm:mt-8 text-gray-800">รายวิชาในห้องเรียน</h2>
+        <div class="overflow-x-auto mt-4">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-pink-100 text-pink-800 text-sm sm:text-base">
+                        <th class="border border-pink-200 p-3 font-semibold">รหัสวิชา</th>
+                        <th class="border border-pink-200 p-3 font-semibold">ชื่อวิชา</th>
+                        <th class="border border-pink-200 p-3 font-semibold text-center">ครูผู้สอน</th>
+                        <th class="border border-pink-200 p-3 font-semibold text-center">การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cs in current_subjects %}
+                        <tr class="hover:bg-pink-50 transition-colors duration-300">
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ cs.subject.code }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ cs.subject.name }}</td>
+                            <td class="border border-pink-200 p-3 text-center">
+                                <form method="POST" class="update-teacher-form" data-subject-id="{{ cs.subject.id }}">
+                                    <select name="teacher_id" class="w-full border border-pink-300 px-2 py-1 rounded-lg focus:ring-2 focus:ring-pink-400 text-sm sm:text-base">
+                                        <option value="">-- ไม่ระบุ --</option>
+                                        {% for teacher in subject_teachers_mapping.get(cs.subject.id, []) %}
+                                            <option value="{{ teacher.id }}" {% if cs.teacher and cs.teacher.id == teacher.id %}selected{% endif %}>
+                                                {{ teacher.first_name }} {{ teacher.last_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="mt-2 bg-pink-600 text-white px-2 py-1 rounded-full hover:bg-pink-700 transition-all duration-300 text-sm">อัปเดต</button>
+                                </form>
+                            </td>
+                            <td class="border border-pink-200 p-3 text-center">
+                                <form method="POST" action="{{ url_for('teacher.remove_subject', classroom_id=classroom.id, subject_id=cs.subject.id) }}">
+                                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-full hover:bg-red-600 transition-all duration-300 text-sm">ลบ</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% if current_subjects|length == 0 %}
+                        <tr>
+                            <td colspan="4" class="border border-pink-200 p-4 text-center text-gray-500 text-sm sm:text-base">ยังไม่มีรายวิชาในห้องเรียนนี้</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
 
-  <!-- ฟอร์มเพิ่มรายวิชา -->
-  <h2 class="text-xl font-semibold mt-6">เพิ่มรายวิชาในห้อง</h2>
-  <form method="POST" action="{{ url_for('teacher.classroom_subjects', classroom_id=classroom.id) }}">
-    <div class="mb-4">
-      <label>เลือกวิชาที่ต้องการเพิ่ม:</label>
-      <select name="subject_ids" multiple class="border rounded w-full p-2">
-        {% for subject in all_subjects %}
-          <option value="{{ subject.id }}">{{ subject.code }} - {{ subject.name }}</option>
-        {% endfor %}
-      </select>
+        <!-- ฟอร์มเพิ่มรายวิชา -->
+        <h2 class="text-lg sm:text-xl font-semibold mt-6 sm:mt-8 text-gray-800">เพิ่มรายวิชาในห้อง</h2>
+        <form method="POST" action="{{ url_for('teacher.classroom_subjects', classroom_id=classroom.id) }}" class="mt-4 space-y-4">
+            <div>
+                <label class="block text-gray-700 font-semibold text-sm sm:text-base">เลือกวิชาที่ต้องการเพิ่ม:</label>
+                <select name="subject_ids" multiple 
+                        class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 h-32 text-sm sm:text-base">
+                    {% for subject in all_subjects %}
+                        <option value="{{ subject.id }}">{{ subject.code }} - {{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" 
+                    class="bg-pink-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                เพิ่มรายวิชา
+            </button>
+        </form>
     </div>
-    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">เพิ่มรายวิชา</button>
-  </form>
 </div>
 
-<!-- ✅ AJAX สำหรับอัปเดตครูผู้สอน -->
 <script>
 document.querySelectorAll('.update-teacher-form').forEach(form => {
     form.addEventListener('submit', function(e) {
-        e.preventDefault();  // ป้องกันการ reload หน้า
-
+        e.preventDefault();
         const subjectId = this.dataset.subjectId;
         const teacherId = this.querySelector('select[name="teacher_id"]').value;
         const formData = new FormData();
         formData.append('teacher_id', teacherId);
-
         fetch(`/teacher/classrooms/{{ classroom.id }}/subjects/${subjectId}/update_teacher`, {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);  // แสดงข้อความแจ้งเตือนสำเร็จ
+            alert(data.message);
         })
         .catch(error => console.error('Error:', error));
     });

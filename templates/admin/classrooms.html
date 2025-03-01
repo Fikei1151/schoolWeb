@@ -1,52 +1,64 @@
 {% extends 'layout.html' %}
 {% block title %}รายการห้องเรียน{% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4">รายการห้องเรียน</h1>
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            รายการห้องเรียน
+        </h1>
 
-  <!-- ค้นหาห้องเรียน -->
-  <form method="POST" class="mb-4">
-    <input type="text" name="search" placeholder="ค้นหาชื่อห้องเรียน..."
-           class="border p-2 rounded w-1/2">
-    <button type="submit" class="bg-pink-600 text-white px-4 py-2 rounded">ค้นหา</button>
-  </form>
-  <a href="{{ url_for('admin.upgrade_classrooms') }}" 
-  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded inline-block mb-4">
- อัปเกรดห้องเรียน
-</a>
+        <!-- ค้นหาห้องเรียน -->
+        <form method="POST" class="mb-6 flex flex-col sm:flex-row gap-4">
+            <input type="text" name="search" placeholder="ค้นหาชื่อห้องเรียน..." 
+                   class="w-full sm:w-1/2 border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
+            <button type="submit" 
+                    class="bg-pink-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                ค้นหา
+            </button>
+        </form>
+        <div class="mb-6">
+            <a href="{{ url_for('admin.upgrade_classrooms') }}" 
+               class="bg-pink-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                อัปเกรดห้องเรียน
+            </a>
+        </div>
 
-  <!-- รายการห้องเรียน -->
-  <table class="w-full border-collapse">
-    <thead>
-      <tr class="bg-pink-100">
-        <th class="border p-2">ชื่อห้องเรียน</th>
-        <th class="border p-2">ระดับชั้น</th>
-        <th class="border p-2">ปีการศึกษาที่สร้าง</th>
-        <th class="border p-2">ครูผู้ดูแล</th>
-        <th class="border p-2">ตัวเลือก</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for classroom in classrooms %}
-        <tr>
-          <td class="border p-2">{{ classroom.name }}</td>
-          <td class="border p-2">{{ classroom.education_level }}</td>
-          <td class="border p-2">{{ classroom.creation_year }}</td>  <!-- แสดงปีที่สร้าง -->
-          <td class="border p-2">
-            {% if classroom.teacher %}
-              {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
-            {% else %}
-              <i>None</i>
-            {% endif %}
-          </td>
-          <td class="border p-2">
-            <a href="{{ url_for('admin.classroom_detail', classroom_id=classroom.id) }}" 
-               class="text-pink-600 hover:underline">ดูรายละเอียด</a>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-    
-  </table>
+        <!-- รายการห้องเรียน -->
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-pink-100 text-pink-800 text-sm sm:text-base">
+                        <th class="border border-pink-200 p-3 font-semibold">ชื่อห้องเรียน</th>
+                        <th class="border border-pink-200 p-3 font-semibold">ระดับชั้น</th>
+                        <th class="border border-pink-200 p-3 font-semibold">ปีการศึกษาที่สร้าง</th>
+                        <th class="border border-pink-200 p-3 font-semibold">ครูผู้ดูแล</th>
+                        <th class="border border-pink-200 p-3 font-semibold">ตัวเลือก</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for classroom in classrooms %}
+                        <tr class="hover:bg-pink-50 transition-colors duration-300">
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ classroom.name }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ classroom.education_level }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ classroom.creation_year }}</td>
+                            <td class="border border-pink-200 p-3 text-sm sm:text-base">
+                                {% if classroom.teacher %}
+                                    {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
+                                {% else %}
+                                    <i class="text-gray-500">None</i>
+                                {% endif %}
+                            </td>
+                            <td class="border border-pink-200 p-3 text-center">
+                                <a href="{{ url_for('admin.classroom_detail', classroom_id=classroom.id) }}" 
+                                   class="text-pink-600 hover:text-pink-700 hover:underline transition-colors duration-300 text-sm sm:text-base">
+                                    ดูรายละเอียด
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

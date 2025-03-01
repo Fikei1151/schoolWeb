@@ -11,8 +11,9 @@ teacher_bp = Blueprint('teacher', __name__)
 def teacher_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('role') != 'teacher':
-            flash("Teacher only!", 'error')
+        role = session.get('role')
+        if role not in ['admin','teacher']:
+            flash("Only admin or teacher can access this page.", "error")
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -38,7 +39,12 @@ def list_classrooms():
 @teacher_required
 def classroom_detail(classroom_id):
     teacher_id = session.get('user_id')
-    classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
+    role = session.get('role')
+    
+    if role == 'admin':
+        classroom = Classroom.query.get_or_404(classroom_id)
+    else:
+        classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
 
     # ดึงนักเรียนที่อยู่ในห้องเรียนนี้
     students = User.query.join(ClassroomStudents).filter(ClassroomStudents.classroom_id == classroom.id).all()
@@ -340,9 +346,14 @@ def enter_grades(classroom_id, subject_id):
 def update_subject_teacher(classroom_id, subject_id):
     """ อัปเดตครูผู้สอนของรายวิชาในห้องเรียน (สำหรับครู) """
     teacher_id = session.get('user_id')
+    role = session.get('role')
+    if role == 'admin':
+        classroom = Classroom.query.get_or_404(classroom_id)
+    else:
+        classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
 
     # ตรวจสอบว่าครูมีสิทธิ์จัดการห้องนี้
-    classroom = Classroom.query.filter_by(id=classroom_id, teacher_id=teacher_id).first_or_404()
+    
 
     # ตรวจสอบว่ารายวิชานี้อยู่ในห้องนี้หรือไม่
     classroom_subject = ClassroomSubjects.query.filter_by(classroom_id=classroom.id, subject_id=subject_id).first_or_404()

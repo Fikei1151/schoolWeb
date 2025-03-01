@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block title %}ข้อมูลผู้ปกครอง{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">ข้อมูลผู้ปกครอง</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p><span class="font-semibold">ชื่อ - สกุล:</span> {{ guardian.full_name }}</p>
+        <p><span class="font-semibold">สัญชาติ:</span> {{ guardian.nationality }}</p>
+        <p><span class="font-semibold">สถานภาพ:</span> {{ guardian.status }}</p>
+        <p><span class="font-semibold">อาชีพ:</span> {{ guardian.occupation }}</p>
+        <p><span class="font-semibold">ตำแหน่ง:</span> {{ guardian.position or 'ไม่ระบุ' }}</p>
+        <p><span class="font-semibold">สถานที่ทำงาน:</span> {{ guardian.workplace or 'ไม่ระบุ' }}</p>
+        <p><span class="font-semibold">รายได้เฉลี่ย:</span> {{ guardian.income or 'ไม่ระบุ' }}</p>
+    </div>
+
+    <h3 class="text-xl font-bold text-gray-800 mt-6">ที่อยู่</h3>
+    <p><span class="font-semibold">บ้านเลขที่:</span> {{ guardian.address_no }}</p>
+    <p><span class="font-semibold">หมู่ที่:</span> {{ guardian.moo or '-' }}</p>
+    <p><span class="font-semibold">ถนน:</span> {{ guardian.road or '-' }}</p>
+    <p><span class="font-semibold">แขวง/ตำบล:</span> {{ guardian.sub_district }}</p>
+    <p><span class="font-semibold">เขต/อำเภอ:</span> {{ guardian.district }}</p>
+    <p><span class="font-semibold">จังหวัด:</span> {{ guardian.province }}</p>
+    <p><span class="font-semibold">รหัสไปรษณีย์:</span> {{ guardian.postal_code }}</p>
+
+    <h3 class="text-xl font-bold text-gray-800 mt-6">การติดต่อ</h3>
+    <p><span class="font-semibold">หมายเลขโทรศัพท์:</span> {{ guardian.phone }}</p>
+    <p><span class="font-semibold">E-Mail:</span> {{ guardian.email or 'ไม่ระบุ' }}</p>
+</div>
+{% endblock %}

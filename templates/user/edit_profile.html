@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+{% block title %}แก้ไขโปรไฟล์{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">แก้ไขโปรไฟล์</h2>
+
+    <form method="POST" action="{{ url_for('user.edit_profile') }}" enctype="multipart/form-data">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% if user.role != 'student' %}
+            <div>
+                <label class="block text-gray-700">ชื่อ</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+            <div>
+                <label class="block text-gray-700">นามสกุล</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="block text-gray-700">อีเมล</label>
+                <input type="email" name="email" value="{{ user.email or '' }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+            <div>
+                <label class="block text-gray-700">เบอร์โทร</label>
+                <input type="text" name="phone" value="{{ user.phone or '' }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+            <div>
+                <label class="block text-gray-700">ที่อยู่</label>
+                <input type="text" name="address" value="{{ user.address or '' }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+
+            {% if user.role == 'student' %}
+            <div>
+                <label class="block text-gray-700">ชื่อผู้ปกครอง</label>
+                <input type="text" name="guardian_name" value="{{ user.guardian_name or '' }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+            <div>
+                <label class="block text-gray-700">เบอร์ผู้ปกครอง</label>
+                <input type="text" name="guardian_phone" value="{{ user.guardian_phone or '' }}" 
+                       class="w-full p-2 border rounded-md">
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="block text-gray-700">อัปโหลดรูปโปรไฟล์</label>
+                <input type="file" name="profile_image" class="w-full p-2 border rounded-md">
+            </div>
+        </div>
+
+        <button type="submit" class="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+            บันทึกการเปลี่ยนแปลง
+        </button>
+    </form>
+</div>
+{% endblock %}

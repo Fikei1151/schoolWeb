@@ -1,55 +1,61 @@
 {% extends 'layout.html' %}
 {% block title %}อัปเกรดห้องเรียน{% endblock %}
 {% block content %}
-<div class="bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4">อัปเกรดห้องเรียน</h1>
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+            อัปเกรดห้องเรียน
+        </h1>
 
-  <form method="POST">
-    <table class="w-full border-collapse">
-        <thead>
-            <tr class="bg-pink-100">
-              <th class="border p-2">
-                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()"> เลือกทั้งหมด
-              </th>
-              <th class="border p-2">ชื่อห้องเรียน</th>
-              <th class="border p-2">ระดับชั้น</th>
-              <th class="border p-2">ปีการศึกษาที่สร้าง</th>
-              <th class="border p-2">ครูผู้ดูแล</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for classroom in classrooms %}
-              <tr>
-                <td class="border p-2 text-center">
-                  <input type="checkbox" name="classroom_ids" value="{{ classroom.id }}">
-                </td>
-                <td class="border p-2">{{ classroom.name }}</td>
-                <td class="border p-2">{{ classroom.education_level }}</td>
-                <td class="border p-2">{{ classroom.creation_year }}</td>  <!-- แสดงปีที่สร้าง -->
-                <td class="border p-2">
-                  {% if classroom.teacher %}
-                    {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
-                  {% else %}
-                    <i>None</i>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-          
-    </table>
-
-    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-4">
-      อัปเกรดห้องเรียน
-    </button>
-  </form>
+        <form method="POST">
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-pink-100 text-pink-800 text-sm sm:text-base">
+                            <th class="border border-pink-200 p-3 font-semibold text-center">
+                                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="h-4 w-4 text-pink-600 border-pink-300 focus:ring-pink-400"> เลือกทั้งหมด
+                            </th>
+                            <th class="border border-pink-200 p-3 font-semibold">ชื่อห้องเรียน</th>
+                            <th class="border border-pink-200 p-3 font-semibold">ระดับชั้น</th>
+                            <th class="border border-pink-200 p-3 font-semibold">ปีการศึกษาที่สร้าง</th>
+                            <th class="border border-pink-200 p-3 font-semibold">ครูผู้ดูแล</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for classroom in classrooms %}
+                            <tr class="hover:bg-pink-50 transition-colors duration-300">
+                                <td class="border border-pink-200 p-3 text-center">
+                                    <input type="checkbox" name="classroom_ids" value="{{ classroom.id }}" 
+                                           class="h-4 w-4 text-pink-600 border-pink-300 focus:ring-pink-400">
+                                </td>
+                                <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ classroom.name }}</td>
+                                <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ classroom.education_level }}</td>
+                                <td class="border border-pink-200 p-3 text-sm sm:text-base">{{ classroom.creation_year }}</td>
+                                <td class="border border-pink-200 p-3 text-sm sm:text-base">
+                                    {% if classroom.teacher %}
+                                        {{ classroom.teacher.first_name }} {{ classroom.teacher.last_name }}
+                                    {% else %}
+                                        <i class="text-gray-500">None</i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" 
+                    class="w-full sm:w-auto bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
+                อัปเกรดห้องเรียน
+            </button>
+        </form>
+    </div>
 </div>
 
 <script>
-  function toggleSelectAll() {
-    var checkboxes = document.querySelectorAll('input[name="classroom_ids"]');
-    var selectAll = document.getElementById('selectAll');
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('input[name="classroom_ids"]');
+    const selectAll = document.getElementById('selectAll');
     checkboxes.forEach(checkbox => checkbox.checked = selectAll.checked);
-  }
+}
 </script>
 {% endblock %}

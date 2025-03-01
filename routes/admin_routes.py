@@ -361,28 +361,30 @@ def admin_classroom_subjects(classroom_id):
         current_subjects=current_subjects
     )
 
-
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/subjects/update_teachers', methods=['POST'])
 @admin_required
 def update_subject_teachers(classroom_id):
-    """ อัปเดตครูผู้สอนของหลายรายวิชาในห้องเรียน """
+    """อัปเดตครูผู้สอนของรายวิชาในห้องเรียน"""
     classroom = Classroom.query.get_or_404(classroom_id)
 
-    for subject_id in request.form:
-        if subject_id.startswith("teacher_for_"):  # ตรวจสอบชื่อ input
-            real_subject_id = int(subject_id.replace("teacher_for_", ""))
-            new_teacher_id = request.form.get(subject_id)
+    # วนลูปตรวจสอบค่าที่ส่งมาใน request.form
+    for key, value in request.form.items():
+        if key.startswith("teacher_for_"):  # ค้นหา input ที่เป็น teacher_for_
+            subject_id = int(key.replace("teacher_for_", ""))  # แปลง subject_id จาก key
 
             classroom_subject = ClassroomSubjects.query.filter_by(
-                classroom_id=classroom.id, subject_id=real_subject_id
+                classroom_id=classroom.id, subject_id=subject_id
             ).first()
 
             if classroom_subject:
-                classroom_subject.teacher_id = new_teacher_id if new_teacher_id else None
+                if value:  # ถ้ามีค่า teacher_id
+                    classroom_subject.teacher_id = int(value)
+                else:
+                    classroom_subject.teacher_id = None  # ถ้าเลือก "ไม่ระบุ"
 
     db.session.commit()
     flash('อัปเดตครูผู้สอนเรียบร้อย', 'success')
-    return redirect(url_for('admin.admin_classroom_subjects', classroom_id=classroom_id))
+    return redirect(url_for('admin.admin_classroom_subjects', classroom_id=classroom.id))
 
 
 @admin_bp.route('/admin/classrooms/<int:classroom_id>/subjects/<int:subject_id>/delete', methods=['POST'])
