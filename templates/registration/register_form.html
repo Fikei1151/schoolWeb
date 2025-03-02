@@ -1,0 +1,407 @@
+{% extends 'layout.html' %}
+
+{% block title %}สมัครเรียน{% endblock %}
+
+{% block content %}
+<div class="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-pink-200">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-pink-600 drop-shadow-md">
+                สมัครเรียน
+            </h1>
+            <a href="{{ url_for('registration.search_form') }}" class="text-pink-600 hover:text-pink-800 flex items-center gap-1 transition-colors duration-300">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                ค้นหาใบสมัคร
+            </a>
+        </div>
+
+        <!-- ข้อความแจ้งเตือน -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-lg text-sm font-medium {% if category == 'success' %}bg-green-100 text-green-800 border border-green-200{% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form id="application-form" action="{{ url_for('registration.submit_registration') }}" method="POST" class="space-y-6">
+            <!-- เลือกระดับชั้น -->
+            <div class="bg-blue-50 p-4 rounded-md">
+                <h2 class="text-lg sm:text-xl font-semibold text-blue-700 mb-4">
+                    เลือกระดับชั้นที่ต้องการสมัคร
+                </h2>
+                <div class="mb-4">
+                    <label for="admission_period_id" class="block text-gray-700 font-medium mb-2">
+                        ระดับชั้น
+                    </label>
+                    <select name="admission_period_id" id="admission_period_id"
+                            required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                        <option value="">-- เลือกระดับชั้น --</option>
+                        {% for period in admission_periods %}
+                            <option value="{{ period.id }}">{{ period.education_level }} ชั้นปีที่ {{ period.grade_level }} (ปีการศึกษา {{ period.academic_year }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- ข้อมูลนักเรียน -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                    ข้อมูลนักเรียน
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="child_first_name" class="block text-gray-700 font-medium mb-2">
+                            ชื่อ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="child_first_name" id="child_first_name"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="child_last_name" class="block text-gray-700 font-medium mb-2">
+                            นามสกุล <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="child_last_name" id="child_last_name"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="child_citizen_id" class="block text-gray-700 font-medium mb-2">
+                            เลขประจำตัวประชาชน <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="child_citizen_id" id="child_citizen_id"
+                               required pattern="[0-9]{13}" maxlength="13" class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                        <p class="text-xs text-gray-500 mt-1">กรอกเฉพาะตัวเลข 13 หลัก</p>
+                    </div>
+
+                    <div>
+                        <label for="child_gender" class="block text-gray-700 font-medium mb-2">
+                            เพศ <span class="text-red-500">*</span>
+                        </label>
+                        <select name="child_gender" id="child_gender"
+                                required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                            <option value="">-- เลือกเพศ --</option>
+                            <option value="ชาย">ชาย</option>
+                            <option value="หญิง">หญิง</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="child_birth_date" class="block text-gray-700 font-medium mb-2">
+                            วันเกิด <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="child_birth_date" id="child_birth_date"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="child_nationality" class="block text-gray-700 font-medium mb-2">
+                            สัญชาติ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="child_nationality" id="child_nationality"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="child_blood_type" class="block text-gray-700 font-medium mb-2">
+                            กรุ๊ปเลือด
+                        </label>
+                        <select name="child_blood_type" id="child_blood_type"
+                                class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                            <option value="">-- เลือกกรุ๊ปเลือด --</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="AB">AB</option>
+                            <option value="O">O</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="child_birth_province" class="block text-gray-700 font-medium mb-2">
+                            จังหวัดที่เกิด
+                        </label>
+                        <input type="text" name="child_birth_province" id="child_birth_province"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="child_birth_other" class="block text-gray-700 font-medium mb-2">
+                            สถานที่เกิดอื่นๆ
+                        </label>
+                        <input type="text" name="child_birth_other" id="child_birth_other"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="child_disability" class="block text-gray-700 font-medium mb-2">
+                            ความพิการ
+                        </label>
+                        <input type="text" name="child_disability" id="child_disability"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                        <p class="text-xs text-gray-500 mt-1">ระบุความพิการ (ถ้ามี) หรือระบุ "ไม่มี"</p>
+                    </div>
+
+                    <div>
+                        <label for="child_special_talent" class="block text-gray-700 font-medium mb-2">
+                            ความสามารถพิเศษ
+                        </label>
+                        <input type="text" name="child_special_talent" id="child_special_talent"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ข้อมูลผู้ปกครอง -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                    ข้อมูลผู้ปกครอง
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="guardian_full_name" class="block text-gray-700 font-medium mb-2">
+                            ชื่อ-นามสกุล <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_full_name" id="guardian_full_name"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_nationality" class="block text-gray-700 font-medium mb-2">
+                            สัญชาติ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_nationality" id="guardian_nationality"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_status" class="block text-gray-700 font-medium mb-2">
+                            ความสัมพันธ์กับนักเรียน <span class="text-red-500">*</span>
+                        </label>
+                        <select name="guardian_status" id="guardian_status"
+                                required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                            <option value="">-- เลือกความสัมพันธ์ --</option>
+                            <option value="บิดา">บิดา</option>
+                            <option value="มารดา">มารดา</option>
+                            <option value="ปู่">ปู่</option>
+                            <option value="ย่า">ย่า</option>
+                            <option value="ตา">ตา</option>
+                            <option value="ยาย">ยาย</option>
+                            <option value="ลุง">ลุง</option>
+                            <option value="ป้า">ป้า</option>
+                            <option value="น้า">น้า</option>
+                            <option value="อา">อา</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="guardian_occupation" class="block text-gray-700 font-medium mb-2">
+                            อาชีพ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_occupation" id="guardian_occupation"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_position" class="block text-gray-700 font-medium mb-2">
+                            ตำแหน่ง
+                        </label>
+                        <input type="text" name="guardian_position" id="guardian_position"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_workplace" class="block text-gray-700 font-medium mb-2">
+                            สถานที่ทำงาน
+                        </label>
+                        <input type="text" name="guardian_workplace" id="guardian_workplace"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_income" class="block text-gray-700 font-medium mb-2">
+                            รายได้ต่อเดือน
+                        </label>
+                        <input type="text" name="guardian_income" id="guardian_income"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">ที่อยู่</h3>
+                    </div>
+
+                    <div>
+                        <label for="guardian_address_no" class="block text-gray-700 font-medium mb-2">
+                            บ้านเลขที่ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_address_no" id="guardian_address_no"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_moo" class="block text-gray-700 font-medium mb-2">
+                            หมู่
+                        </label>
+                        <input type="text" name="guardian_moo" id="guardian_moo"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_soi" class="block text-gray-700 font-medium mb-2">
+                            ซอย
+                        </label>
+                        <input type="text" name="guardian_soi" id="guardian_soi"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_road" class="block text-gray-700 font-medium mb-2">
+                            ถนน
+                        </label>
+                        <input type="text" name="guardian_road" id="guardian_road"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_sub_district" class="block text-gray-700 font-medium mb-2">
+                            ตำบล/แขวง <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_sub_district" id="guardian_sub_district"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_district" class="block text-gray-700 font-medium mb-2">
+                            อำเภอ/เขต <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_district" id="guardian_district"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_province" class="block text-gray-700 font-medium mb-2">
+                            จังหวัด <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_province" id="guardian_province"
+                               required class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label for="guardian_postal_code" class="block text-gray-700 font-medium mb-2">
+                            รหัสไปรษณีย์ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="guardian_postal_code" id="guardian_postal_code"
+                               required pattern="[0-9]{5}" maxlength="5" class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                        <p class="text-xs text-gray-500 mt-1">กรอกตัวเลข 5 หลัก</p>
+                    </div>
+
+                    <div>
+                        <label for="guardian_phone" class="block text-gray-700 font-medium mb-2">
+                            เบอร์โทรศัพท์ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="tel" name="guardian_phone" id="guardian_phone"
+                               required pattern="[0-9]{9,10}" class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                        <p class="text-xs text-gray-500 mt-1">กรอกตัวเลข 9-10 หลัก</p>
+                    </div>
+
+                    <div>
+                        <label for="guardian_email" class="block text-gray-700 font-medium mb-2">
+                            อีเมล
+                        </label>
+                        <input type="email" name="guardian_email" id="guardian_email"
+                               class="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 text-sm sm:text-base">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ปุ่มส่งใบสมัคร -->
+            <div class="text-center">
+                <button type="button" id="submit-btn"
+                        class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2 mx-auto text-sm sm:text-base">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    ส่งใบสมัคร
+                </button>
+            </div>
+        </form>
+
+        <!-- Confirmation Modal -->
+        <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-50">
+            <div class="bg-green-600 rounded-2xl shadow-xl border border-pink-200 p-6 sm:p-8 w-full max-w-md">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4 text-center">
+                    ยืนยันการสมัคร
+                </h2>
+                <p class="text-sm sm:text-base text-gray-600 text-center mb-6">
+                    คุณแน่ใจหรือไม่ว่าต้องการส่งใบสมัคร?
+                </p>
+                <div class="flex justify-center gap-4">
+                    <button id="confirm-submit-btn"
+                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 sm:px-6 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2 text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        ยืนยันการสมัคร
+                    </button>
+                    <button id="cancel-btn"
+                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 sm:px-6 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center gap-2 text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        ยกเลิก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('child_birth_date').setAttribute('max', today);
+
+        const form = document.getElementById('application-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // เมื่อกดปุ่ม "ส่งใบสมัคร" แสดง modal
+        submitBtn.addEventListener('click', function() {
+            confirmModal.classList.remove('hidden');
+        });
+
+        // เมื่อกดปุ่ม "ยืนยันการสมัคร" ส่งฟอร์ม
+        confirmSubmitBtn.addEventListener('click', function() {
+            // ตรวจสอบว่าฟอร์มถูกต้องก่อนส่ง
+            if (form.checkValidity()) {
+                form.submit();
+            } else {
+                // แสดง validation errors
+                form.reportValidity();
+                confirmModal.classList.add('hidden');
+            }
+        });
+
+        // เมื่อกดปุ่ม "ยกเลิก" ปิด modal
+        cancelBtn.addEventListener('click', function() {
+            confirmModal.classList.add('hidden');
+        });
+
+        // ปิด modal เมื่อคลิกนอก modal
+        confirmModal.addEventListener('click', function(e) {
+            if (e.target === confirmModal) {
+                confirmModal.classList.add('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}

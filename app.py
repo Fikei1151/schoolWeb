@@ -1,4 +1,4 @@
-from flask import Flask, render_template,session
+from flask import Flask, render_template, session
 from config import Config
 from database import db
 import os
@@ -8,6 +8,7 @@ from models.user import User, StudentProfile
 from models.classroom import Classroom
 from models.subject import Subject, ClassroomSubjects
 from models.academic import AcademicSettings
+from models.registration import AdmissionPeriod, ExamRoom, StudentApplication
 
 # Import Blueprints
 from routes.auth_routes import auth_bp
@@ -16,10 +17,11 @@ from routes.teacher_routes import teacher_bp
 from routes.student_routes import student_bp
 from routes.subject_routes import subject_bp
 from routes.news_routes import news_bp
-from routes.user_routes import user_bp 
+from routes.user_routes import user_bp
+from routes.registration_routes import registration_bp
 from flask_session import Session  
 # Import Flask-Login
-from flask_login import LoginManager,current_user
+from flask_login import LoginManager, current_user
 
 def create_app():
     app = Flask(__name__)
@@ -41,7 +43,7 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     # สร้างตารางถ้ายังไม่มี พร้อมสร้าง default account
     @app.before_request
@@ -61,6 +63,7 @@ def create_app():
     app.register_blueprint(subject_bp)
     app.register_blueprint(news_bp, url_prefix='/news')
     app.register_blueprint(user_bp)
+    app.register_blueprint(registration_bp, url_prefix='/registration')
 
     @app.route('/')
     def index():
@@ -129,7 +132,8 @@ def create_default_accounts():
 
     db.session.commit()
     print("Default accounts created successfully.")
+
 app = create_app()
+
 if __name__ == '__main__':
-    # app = create_app()
     app.run(port=8000)
