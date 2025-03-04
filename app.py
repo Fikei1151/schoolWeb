@@ -4,14 +4,11 @@ from database import db
 import os
 from datetime import datetime
 from utils.s3_utils import s3_client, upload_file_to_s3
-# Import models (เพื่อสร้างตารางได้ตอน db.create_all())
 from models.user import User, StudentProfile
 from models.classroom import Classroom
 from models.subject import Subject, ClassroomSubjects
 from models.academic import AcademicSettings
 from models.registration import AdmissionPeriod, ExamRoom, StudentApplication
-
-# Import Blueprints
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.teacher_routes import teacher_bp
@@ -20,51 +17,51 @@ from routes.subject_routes import subject_bp
 from routes.news_routes import news_bp
 from routes.user_routes import user_bp
 from routes.registration_routes import registration_bp
-from flask_session import Session  
-# Import Flask-Login
+from flask_session import Session
 from flask_login import LoginManager, current_user
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    Session(app)    
-    
-    # ตั้งค่าโฟลเดอร์สำหรับอัปโหลดไฟล์ (ใช้ค่าจาก Config)
+    Session(app)
+
     app.config['UPLOAD_FOLDER'] = Config.UPLOAD_FOLDER
-    
-    # สร้างโฟลเดอร์ local สำหรับ fallback ถ้า S3 ไม่ทำงาน
     local_upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
     if not os.path.exists(local_upload_folder):
         os.makedirs(local_upload_folder)
 
-    # เริ่มต้น SQLAlchemy
     db.init_app(app)
 
-    # ตั้งค่า Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'  # เมื่อผู้ใช้ยังไม่ได้เข้าสู่ระบบจะถูกเปลี่ยนเส้นทางไปยังหน้า login
+    login_manager.login_view = 'auth.login'
 
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
 
-    # สร้างตารางถ้ายังไม่มี พร้อมสร้าง default account
     @app.before_request
     def clear_stale_user():
         if not current_user.is_authenticated:
             session.clear()
-            session.modified = True  # ✅ บังคับ Flask อัปเดต Session
+            session.modified = True
+
+    # ตรวจสอบและสร้างตารางเฉพาะเมื่อจำเป็น
     with app.app_context():
-        db.create_all()
-        create_default_accounts()
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        if not inspector.has_table('users'):
+            db.create_all()
+            create_default_accounts()
+        else:
+            print("ตารางฐานข้อมูลมีอยู่แล้ว ข้ามการสร้าง")
 
     # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(teacher_bp)
     app.register_blueprint(student_bp)
-    app.register_blueprint(subject_bp)
+    app.register_blueprint(subject_bp)  # ใช้ subject_bp ให้ตรงกับ import
     app.register_blueprint(news_bp, url_prefix='/news')
     app.register_blueprint(user_bp)
     app.register_blueprint(registration_bp, url_prefix='/registration')
@@ -72,7 +69,7 @@ def create_app():
     @app.route('/')
     def index():
         return render_template('index.html')
-    
+
     return app
 
 def create_default_accounts():
@@ -88,9 +85,8 @@ def create_default_accounts():
         )
         new_admin.set_password('admin1234')
         db.session.add(new_admin)
-        print("Default admin created: citizen_id=1234567890123 / password=admin1234")
+        print("สร้างแอดมินเริ่มต้น: citizen_id=1234567890123 / รหัสผ่าน=admin1234")
 
-    # สร้างบัญชีครู 2 คน
     for i in range(1, 3):
         citizen_id = f"111111111111{i}"
         if not User.query.filter_by(citizen_id=citizen_id).first():
@@ -103,9 +99,8 @@ def create_default_accounts():
             )
             teacher.set_password('1')
             db.session.add(teacher)
-            print(f"Default teacher created: citizen_id={citizen_id} / password=1")
+            print(f"สร้างครูเริ่มต้น: citizen_id={citizen_id} / รหัสผ่าน=1")
 
-    # สร้างบัญชีนักเรียน 4 คน พร้อม StudentProfile
     for i in range(1, 5):
         citizen_id = f"111111111111{i+2}"
         if not User.query.filter_by(citizen_id=citizen_id).first():
@@ -118,8 +113,6 @@ def create_default_accounts():
             )
             student.set_password('1')
             db.session.add(student)
-
-            # สร้าง StudentProfile โดยไม่กำหนด education_level (ระบบจะดึงจากห้องเรียน)
             student_profile = StudentProfile(
                 user=student,
                 student_id=f"S{i+100}",
@@ -131,11 +124,10 @@ def create_default_accounts():
                 disability="ไม่มี"
             )
             db.session.add(student_profile)
-
-            print(f"Default student created: citizen_id={citizen_id} / password=1")
+            print(f"สร้างนักเรียนเริ่มต้น: citizen_id={citizen_id} / รหัสผ่าน=1")
 
     db.session.commit()
-    print("Default accounts created successfully.")
+    print("สร้างบัญชีเริ่มต้นสำเร็จ")
 
 app = create_app()
 
