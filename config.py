@@ -6,7 +6,8 @@ load_dotenv()  # โหลดค่าจาก .env
 
 class Config:
     SECRET_KEY = 'your_secret_key'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://username:password@localhost/dbname')
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # AWS S3 Config

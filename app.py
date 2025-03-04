@@ -19,6 +19,7 @@ from routes.user_routes import user_bp
 from routes.registration_routes import registration_bp
 from flask_session import Session
 from flask_login import LoginManager, current_user
+from flask_migrate import Migrate
 
 def create_app():
     app = Flask(__name__)
@@ -31,6 +32,7 @@ def create_app():
         os.makedirs(local_upload_folder)
 
     db.init_app(app)
+    migrate = Migrate(app, db)  # ใช้ Flask-Migrate แทน db.create_all()
 
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -45,17 +47,6 @@ def create_app():
         if not current_user.is_authenticated:
             session.clear()
             session.modified = True
-
-    # ตรวจสอบและจัดการฐานข้อมูล
-    with app.app_context():
-        from sqlalchemy import inspect
-        inspector = inspect(db.engine)
-        if not inspector.has_table('users'):
-            print("สร้างตารางใหม่ในฐานข้อมูล")
-            db.create_all()
-            create_default_accounts()
-        else:
-            print("ตารางฐานข้อมูลมีอยู่แล้ว ข้ามการสร้าง")
 
     # Register Blueprints
     app.register_blueprint(auth_bp)
@@ -72,63 +63,6 @@ def create_app():
         return render_template('index.html')
 
     return app
-
-def create_default_accounts():
-    """สร้างบัญชีเริ่มต้น (Admin, Teacher, Student)"""
-    admin_user = User.query.filter_by(role='admin').first()
-    if not admin_user:
-        new_admin = User(
-            citizen_id='1234567890123',
-            first_name='Default',
-            last_name='Admin',
-            gender='M',
-            role='admin'
-        )
-        new_admin.set_password('admin1234')
-        db.session.add(new_admin)
-        print("สร้างแอดมินเริ่มต้น: citizen_id=1234567890123 / รหัสผ่าน=admin1234")
-
-    for i in range(1, 3):
-        citizen_id = f"111111111111{i}"
-        if not User.query.filter_by(citizen_id=citizen_id).first():
-            teacher = User(
-                citizen_id=citizen_id,
-                first_name=f"Teacher{i}",
-                last_name="Default",
-                gender='M',
-                role='teacher'
-            )
-            teacher.set_password('1')
-            db.session.add(teacher)
-            print(f"สร้างครูเริ่มต้น: citizen_id={citizen_id} / รหัสผ่าน=1")
-
-    for i in range(1, 5):
-        citizen_id = f"111111111111{i+2}"
-        if not User.query.filter_by(citizen_id=citizen_id).first():
-            student = User(
-                citizen_id=citizen_id,
-                first_name=f"Student{i}",
-                last_name="Default",
-                gender='M',
-                role='student'
-            )
-            student.set_password('1')
-            db.session.add(student)
-            student_profile = StudentProfile(
-                user=student,
-                student_id=f"S{i+100}",
-                full_name_th=f"นักเรียน {i}",
-                full_name_en=f"Student {i}",
-                birth_date=datetime(2010, 1, 1),
-                nationality="ไทย",
-                parent_status="มีชีวิต",
-                disability="ไม่มี"
-            )
-            db.session.add(student_profile)
-            print(f"สร้างนักเรียนเริ่มต้น: citizen_id={citizen_id} / รหัสผ่าน=1")
-
-    db.session.commit()
-    print("สร้างบัญชีเริ่มต้นสำเร็จ")
 
 app = create_app()
 
