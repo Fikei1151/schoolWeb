@@ -11,6 +11,6 @@ build:
     build:
       - pip3 install --no-cache-dir -r requirements.txt
 run:
-  command: gunicorn app:app --bind 0.0.0.0:8000 --workers 4
+  command: gunicorn app:app  --workers 4
   network:
     port: 8000
