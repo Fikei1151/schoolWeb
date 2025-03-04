@@ -2,15 +2,11 @@ version: 1.0
 runtime: python311
 build:
   commands:
-    pre-build:
-      # ถ้า image เป็น Alpine-based ใช้ apk แทน apt-get
-      - apk update || true  # ถ้าไม่มี apk ให้ข้ามไป
-      - apk add --no-cache py3-pip || true  # ถ้าไม่มี apk ให้ข้ามไป
-      # ถ้า pip ยังไม่ติดตั้ง ลองดาวน์โหลดและติดตั้ง pip ด้วยวิธี manual
-      - if ! command -v pip3 &> /dev/null; then wget https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py && python3 /tmp/get-pip.py; fi
+  
     build:
       - pip3 install --no-cache-dir -r requirements.txt
+      - pip install --upgrade pip
 run:
-  command: gunicorn app:app  --workers 4
+  command: gunicorn app:app  
   network:
     port: 8000
