@@ -34,9 +34,16 @@
         <!-- รูปภาพ -->
         {% if post.image_path %}
         <div class="mt-4 flex justify-center">
-            <img src="{{ url_for('static', filename=post.image_path.replace('static/', '')) }}" 
+            {% if post.image_path.startswith('http') %}
+
+            <img src="{{ post.image_path }}" 
                  alt="News Image"
                  class="rounded-lg object-cover w-full max-h-80 sm:max-h-96 shadow-md">
+            {% else %}
+            <img src="{{ url_for('static', filename=post.image_path) }}" 
+                 alt="News Image"
+                 class="rounded-lg object-cover w-full max-h-80 sm:max-h-96 shadow-md">
+            {% endif %}
         </div>
         {% endif %}
 
@@ -52,17 +59,32 @@
                 📂 {{ post.file_path.split('/')[-1] }} (กดเพื่อดู)
             </button>
             <div id="pdfContainer-{{ post.id }}" class="hidden mt-3 border border-pink-200 rounded-lg overflow-hidden shadow-md">
-                <iframe src="{{ url_for('static', filename=post.file_path.replace('static/', '')) }}" 
+                {% if post.file_path.startswith('http') %}
+                <iframe src="{{ post.file_path }}" 
                         class="w-full h-80 sm:h-[500px]"></iframe>
+                {% else %}
+                <iframe src="{{ url_for('static', filename=post.file_path) }}" 
+                        class="w-full h-80 sm:h-[500px]"></iframe>
+                {% endif %}
             </div>
             {% else %}
-            <a href="{{ url_for('static', filename=post.file_path.replace('static/', '')) }}" target="_blank"
+            {% if post.file_path.startswith('http') %}
+            <a href="{{ post.file_path }}" target="_blank"
                class="inline-flex items-center bg-pink-600 text-white px-4 py-2 rounded-full text-sm hover:bg-pink-700 transition-all duration-300">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 ดาวน์โหลดไฟล์แนบ
             </a>
+            {% else %}
+            <a href="{{ url_for('static', filename=post.file_path) }}" target="_blank"
+               class="inline-flex items-center bg-pink-600 text-white px-4 py-2 rounded-full text-sm hover:bg-pink-700 transition-all duration-300">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                ดาวน์โหลดไฟล์แนบ
+            </a>
+            {% endif %}
             {% endif %}
         </div>
         {% endif %}

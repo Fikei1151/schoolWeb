@@ -38,9 +38,20 @@
         <div class="relative">
           <a href="{{ url_for('user.profile') }}"
             class="flex items-center space-x-2 text-white hover:text-pink-200 transition-colors duration-300">
-            <img
-              src="{{ url_for('static', filename=current_user.profile_image.replace('static/', '', 1)) if current_user.profile_image else url_for('static', filename='profile_pics/default_profile.png') }}"
-              alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+            {% if current_user.profile_image %}
+              {% if current_user.profile_image.startswith('http') %}
+              {{ current_user.profile_image }}
+
+                <img src="{{ current_user.profile_image }}"
+                  alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+              {% else %}
+                <img src="{{ url_for('static', filename=current_user.profile_image.replace('static/', '', 1)) }}"
+                  alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+              {% endif %}
+            {% else %}
+              <img src="{{ url_for('static', filename='profile_pics/default_profile.png') }}"
+                alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+            {% endif %}
             <span class="hidden md:inline text-sm font-medium">
               {{ current_user.first_name }} {{ current_user.last_name }}
             </span>

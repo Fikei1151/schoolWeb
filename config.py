@@ -1,18 +1,29 @@
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+load_dotenv()  # โหลดค่าจาก .env
 
 class Config:
     SECRET_KEY = 'your_secret_key'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # ตั้งค่าการอัปโหลดไฟล์
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
+    # AWS S3 Config
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_BUCKET = os.getenv('AWS_S3_BUCKET')
+    AWS_S3_REGION = os.getenv('AWS_S3_REGION')
+    
+    # ใช้ S3 แทนโฟลเดอร์อัปโหลด
+    UPLOAD_FOLDER = f"https://{AWS_S3_BUCKET}.s3.{AWS_S3_REGION}.amazonaws.com/uploads/"
 
-    SESSION_TYPE = 'filesystem'  # 🗂 ใช้ไฟล์ระบบเก็บ session
-    SESSION_PERMANENT = False  # ❌ Session หายไปเมื่อปิดเบราว์เซอร์
-    SESSION_USE_SIGNER = True  # ✅ ป้องกัน session ถูกแก้ไข
-    PERMANENT_SESSION_LIFETIME = 3600  # ⏳ อายุ session = 1 ชั่วโมง
-    SESSION_COOKIE_SECURE = False  # ✅ ปิด secure cookie (ใช้ HTTP)
+    #ด่อนุญาตเฉพาะไฟล์ที่อนุญาต
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+    # Session
+    SESSION_TYPE = 'filesystem'
+    SESSION_PERMANENT = False
+    SESSION_USE_SIGNER = True
+    PERMANENT_SESSION_LIFETIME = 3600
+    SESSION_COOKIE_SECURE = False

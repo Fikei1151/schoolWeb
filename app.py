@@ -2,7 +2,8 @@ from flask import Flask, render_template, session
 from config import Config
 from database import db
 import os
-from datetime import datetime 
+from datetime import datetime
+from utils.s3_utils import s3_client, upload_file_to_s3
 # Import models (เพื่อสร้างตารางได้ตอน db.create_all())
 from models.user import User, StudentProfile
 from models.classroom import Classroom
@@ -27,11 +28,14 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     Session(app)    
-    # ตั้งค่าโฟลเดอร์สำหรับอัปโหลดไฟล์
-    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/uploads')
+    
+    # ตั้งค่าโฟลเดอร์สำหรับอัปโหลดไฟล์ (ใช้ค่าจาก Config)
+    app.config['UPLOAD_FOLDER'] = Config.UPLOAD_FOLDER
+    
+    # สร้างโฟลเดอร์ local สำหรับ fallback ถ้า S3 ไม่ทำงาน
+    local_upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
+    if not os.path.exists(local_upload_folder):
+        os.makedirs(local_upload_folder)
 
     # เริ่มต้น SQLAlchemy
     db.init_app(app)

@@ -5,6 +5,7 @@ from PIL import Image
 from database import db
 from models.post import Post
 from functools import wraps
+from utils.s3_utils import upload_file_to_s3
 
 from io import BytesIO
 
@@ -53,7 +54,7 @@ def news_feed():
     return render_template('news/news_feed.html', posts=posts)
 
 
-# ✅ หน้าโพสต์ข่าว (รองรับบีบอัดภาพ)
+# ✅ หน้าโพสต์ข่าว (รองรับบีบอัดภาพและอัปโหลดไปยัง S3)
 @news_bp.route('/post-news', methods=['GET', 'POST'])
 @login_required
 def post_news():
@@ -66,27 +67,47 @@ def post_news():
 
         image_path, file_path = None, None
 
-        # ✅ บันทึกไฟล์รูปภาพ
-        if image_file:
+        # ✅ อัปโหลดรูปภาพไปยัง S3
+        if image_file and image_file.filename:
             filename = secure_filename(image_file.filename)
-            image_path = os.path.join('static/uploads', filename)
-            image_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            # อัปโหลดไฟล์ไปยัง S3
+            image_path = upload_file_to_s3(image_file, folder="uploads", filename=filename)
+            
+            # หากไม่สามารถอัปโหลดไปยัง S3 ได้ ให้บันทึกลงในโฟลเดอร์ท้องถิ่น
+            if not image_path:
+                local_upload_folder = os.path.join('static', 'uploads')
+                if not os.path.exists(local_upload_folder):
+                    os.makedirs(local_upload_folder)
+                    
+                local_path = os.path.join(local_upload_folder, filename)
+                image_file.save(local_path)
+                
+                # บีบอัดภาพก่อนบันทึก
+                compress_image(local_path)
+                image_path = os.path.join('uploads', filename)
 
-            # ✅ บีบอัดภาพก่อนบันทึก
-            compress_image(image_path)
-
-        # ✅ บันทึกไฟล์เอกสาร
-        if file_file:
+        # ✅ อัปโหลดไฟล์เอกสารไปยัง S3
+        if file_file and file_file.filename:
             filename = secure_filename(file_file.filename)
-            file_path = os.path.join('static/uploads', filename)
-            file_file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            # อัปโหลดไฟล์ไปยัง S3
+            file_path = upload_file_to_s3(file_file, folder="uploads", filename=filename)
+            
+            # หากไม่สามารถอัปโหลดไปยัง S3 ได้ ให้บันทึกลงในโฟลเดอร์ท้องถิ่น
+            if not file_path:
+                local_upload_folder = os.path.join('static', 'uploads')
+                if not os.path.exists(local_upload_folder):
+                    os.makedirs(local_upload_folder)
+                    
+                local_path = os.path.join(local_upload_folder, filename)
+                file_file.save(local_path)
+                file_path = os.path.join('uploads', filename)
 
         new_post = Post(
             title=title,
             content=content,
             author_id=author_id,
-            image_path=image_path.replace('static/', '') if image_path else None,
-            file_path=file_path.replace('static/', '') if file_path else None,
+            image_path=image_path,
+            file_path=file_path,
             is_approved=False
         )
 
@@ -110,6 +131,63 @@ def edit_news(post_id):
     if request.method == 'POST':
         post.title = request.form.get('title')
         post.content = request.form.get('content')
+        
+        # ตรวจสอบการอัปโหลดรูปภาพใหม่
+        image_file = request.files.get('image')
+        if image_file and image_file.filename:
+            filename = secure_filename(image_file.filename)
+            
+            # อัปโหลดไฟล์ไปยัง S3
+            image_path = upload_file_to_s3(image_file, folder="uploads", filename=filename)
+            
+            # หากไม่สามารถอัปโหลดไปยัง S3 ได้ ให้บันทึกลงในโฟลเดอร์ท้องถิ่น
+            if not image_path:
+                local_upload_folder = os.path.join('static', 'uploads')
+                if not os.path.exists(local_upload_folder):
+                    os.makedirs(local_upload_folder)
+                    
+                local_path = os.path.join(local_upload_folder, filename)
+                image_file.save(local_path)
+                
+                # บีบอัดภาพก่อนบันทึก
+                compress_image(local_path)
+                image_path = os.path.join('uploads', filename)
+            
+            # ลบรูปภาพเดิมถ้าเป็นไฟล์ท้องถิ่น
+            if post.image_path and not post.image_path.startswith('http'):
+                old_image_path = os.path.join('static', post.image_path)
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
+            
+            # อัปเดตพาธรูปภาพ
+            post.image_path = image_path
+        
+        # ตรวจสอบการอัปโหลดไฟล์แนบใหม่
+        file_file = request.files.get('file')
+        if file_file and file_file.filename:
+            filename = secure_filename(file_file.filename)
+            
+            # อัปโหลดไฟล์ไปยัง S3
+            file_path = upload_file_to_s3(file_file, folder="uploads", filename=filename)
+            
+            # หากไม่สามารถอัปโหลดไปยัง S3 ได้ ให้บันทึกลงในโฟลเดอร์ท้องถิ่น
+            if not file_path:
+                local_upload_folder = os.path.join('static', 'uploads')
+                if not os.path.exists(local_upload_folder):
+                    os.makedirs(local_upload_folder)
+                    
+                local_path = os.path.join(local_upload_folder, filename)
+                file_file.save(local_path)
+                file_path = os.path.join('uploads', filename)
+            
+            # ลบไฟล์แนบเดิมถ้าเป็นไฟล์ท้องถิ่น
+            if post.file_path and not post.file_path.startswith('http'):
+                old_file_path = os.path.join('static', post.file_path)
+                if os.path.exists(old_file_path):
+                    os.remove(old_file_path)
+            
+            # อัปเดตพาธไฟล์แนบ
+            post.file_path = file_path
 
         db.session.commit()
         flash('โพสต์ถูกแก้ไขเรียบร้อย', 'success')
@@ -127,16 +205,18 @@ def delete_news(post_id):
         flash('คุณไม่มีสิทธิ์ลบโพสต์นี้', 'danger')
         return redirect(url_for('news.news_feed'))
 
-    # ✅ ลบไฟล์จากเซิร์ฟเวอร์
-    if post.image_path:
+    # ✅ ลบไฟล์จากเซิร์ฟเวอร์ (ถ้าเป็นไฟล์ท้องถิ่น)
+    if post.image_path and not post.image_path.startswith('http'):
         image_path = os.path.join('static', post.image_path)
         if os.path.exists(image_path):
             os.remove(image_path)
 
-    if post.file_path:
+    if post.file_path and not post.file_path.startswith('http'):
         file_path = os.path.join('static', post.file_path)
         if os.path.exists(file_path):
             os.remove(file_path)
+
+    # หมายเหตุ: การลบไฟล์จาก S3 ต้องทำผ่าน API ของ S3 ซึ่งไม่ได้ทำในตัวอย่างนี้
 
     db.session.delete(post)
     db.session.commit()
