@@ -46,11 +46,12 @@ def create_app():
             session.clear()
             session.modified = True
 
-    # ตรวจสอบและสร้างตารางเฉพาะเมื่อจำเป็น
+    # ตรวจสอบและจัดการฐานข้อมูล
     with app.app_context():
         from sqlalchemy import inspect
         inspector = inspect(db.engine)
         if not inspector.has_table('users'):
+            print("สร้างตารางใหม่ในฐานข้อมูล")
             db.create_all()
             create_default_accounts()
         else:
@@ -61,7 +62,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(teacher_bp)
     app.register_blueprint(student_bp)
-    app.register_blueprint(subject_bp)  # ใช้ subject_bp ให้ตรงกับ import
+    app.register_blueprint(subject_bp)
     app.register_blueprint(news_bp, url_prefix='/news')
     app.register_blueprint(user_bp)
     app.register_blueprint(registration_bp, url_prefix='/registration')

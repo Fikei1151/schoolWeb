@@ -5,10 +5,10 @@ def test_db_connection():
     try:
         # ข้อมูลการเชื่อมต่อจาก RDS
         connection = psycopg2.connect(
-            host="database-1.c5mgc8y4uhqo.us-east-1.rds.amazonaws.com",
+            host="school.c5mgc8y4uhqo.us-east-1.rds.amazonaws.com",
             port="5432",
-            database="database-1",
-            user="mukhatari",
+            database="school",
+            user="mukhtari-web-flaks",
             password="Fikree240980352350a"
         )
 
