@@ -1,0 +1,136 @@
+from flask import Flask, render_template, session
+from config import Config
+from database import db
+import os
+from datetime import datetime
+from utils.s3_utils import s3_client, upload_file_to_s3
+from models.user import User, StudentProfile
+from models.classroom import Classroom
+from models.subject import Subject, ClassroomSubjects
+from models.academic import AcademicSettings
+from models.registration import AdmissionPeriod, ExamRoom, StudentApplication
+from routes.auth_routes import auth_bp
+from routes.admin_routes import admin_bp
+from routes.teacher_routes import teacher_bp
+from routes.student_routes import student_bp
+from routes.subject_routes import subject_bp
+from routes.news_routes import news_bp
+from routes.user_routes import user_bp
+from routes.registration_routes import registration_bp
+from flask_session import Session
+from flask_login import LoginManager, current_user
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    Session(app)
+
+    app.config['UPLOAD_FOLDER'] = Config.UPLOAD_FOLDER
+    local_upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
+    if not os.path.exists(local_upload_folder):
+        os.makedirs(local_upload_folder)
+
+    db.init_app(app)
+
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.session.get(User, int(user_id))
+
+    @app.before_request
+    def clear_stale_user():
+        if not current_user.is_authenticated:
+            session.clear()
+            session.modified = True
+
+    # ตรวจสอบและจัดการฐานข้อมูล
+    with app.app_context():
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        if not inspector.has_table('users'):
+            print("สร้างตารางใหม่ในฐานข้อมูล")
+            db.create_all()
+            create_default_accounts()
+        else:
+            print("ตารางฐานข้อมูลมีอยู่แล้ว ข้ามการสร้าง")
+
+    # Register Blueprints
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(teacher_bp)
+    app.register_blueprint(student_bp)
+    app.register_blueprint(subject_bp)
+    app.register_blueprint(news_bp, url_prefix='/news')
+    app.register_blueprint(user_bp)
+    app.register_blueprint(registration_bp, url_prefix='/registration')
+
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
+    return app
+
+def create_default_accounts():
+    """สร้างบัญชีเริ่มต้น (Admin, Teacher, Student)"""
+    admin_user = User.query.filter_by(role='admin').first()
+    if not admin_user:
+        new_admin = User(
+            citizen_id='1234567890123',
+            first_name='Default',
+            last_name='Admin',
+            gender='M',
+            role='admin'
+        )
+        new_admin.set_password('admin1234')
+        db.session.add(new_admin)
+        print("สร้างแอดมินเริ่มต้น: citizen_id=1234567890123 / รหัสผ่าน=admin1234")
+
+    for i in range(1, 3):
+        citizen_id = f"111111111111{i}"
+        if not User.query.filter_by(citizen_id=citizen_id).first():
+            teacher = User(
+                citizen_id=citizen_id,
+                first_name=f"Teacher{i}",
+                last_name="Default",
+                gender='M',
+                role='teacher'
+            )
+            teacher.set_password('1')
+            db.session.add(teacher)
+            print(f"สร้างครูเริ่มต้น: citizen_id={citizen_id} / รหัสผ่าน=1")
+
+    for i in range(1, 5):
+        citizen_id = f"111111111111{i+2}"
+        if not User.query.filter_by(citizen_id=citizen_id).first():
+            student = User(
+                citizen_id=citizen_id,
+                first_name=f"Student{i}",
+                last_name="Default",
+                gender='M',
+                role='student'
+            )
+            student.set_password('1')
+            db.session.add(student)
+            student_profile = StudentProfile(
+                user=student,
+                student_id=f"S{i+100}",
+                full_name_th=f"นักเรียน {i}",
+                full_name_en=f"Student {i}",
+                birth_date=datetime(2010, 1, 1),
+                nationality="ไทย",
+                parent_status="มีชีวิต",
+                disability="ไม่มี"
+            )
+            db.session.add(student_profile)
+            print(f"สร้างนักเรียนเริ่มต้น: citizen_id={citizen_id} / รหัสผ่าน=1")
+
+    db.session.commit()
+    print("สร้างบัญชีเริ่มต้นสำเร็จ")
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(port=8000)

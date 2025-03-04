@@ -40,8 +40,7 @@
             class="flex items-center space-x-2 text-white hover:text-pink-200 transition-colors duration-300">
             {% if current_user.profile_image %}
               {% if current_user.profile_image.startswith('http') %}
-              {{ current_user.profile_image }}
-
+            
                 <img src="{{ current_user.profile_image }}"
                   alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
               {% else %}
