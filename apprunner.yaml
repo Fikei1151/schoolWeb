@@ -15,13 +15,13 @@ build:
       - echo "Build completed"
 
 run:
-  runtime-version: 3.11
-  command: gunicorn app:app --bind=0.0.0.0:8000 --workers=2 --threads=4 
+  runtime-version: 3.9
+  command: gunicorn app:app --bind=0.0.0.0:8000 --workers=2 --threads=4 --timeout=120
   network:
     port: 8000
     env: HTTP
   
-  # ตัวอย่างการใช้ Environment Variables โดยตรง
+  # Environment Variables
   env:
     - name: PYTHONUNBUFFERED
       value: "1"
@@ -42,9 +42,7 @@ run:
     # - name: SECRET_KEY
     #   value: "your-flask-secret-key"
   
-  # ตัวอย่างการใช้ AWS Secrets Manager
-  # วิธีนี้ปลอดภัยกว่าการใช้ Environment Variables โดยตรง
-  # ต้องสร้าง Secret ใน AWS Secrets Manager ก่อน
+  # AWS Secrets Manager (ลบเครื่องหมาย # เมื่อต้องการใช้งาน)
   # secrets:
   #   - name: DATABASE_URL
   #     value-from: "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:SECRET_NAME:DATABASE_URL::"
@@ -59,10 +57,5 @@ run:
   #   - name: SECRET_KEY
   #     value-from: "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:SECRET_NAME:SECRET_KEY::"
 
-# การตั้งค่า Health Check เพื่อตรวจสอบว่าแอปพลิเคชันทำงานปกติ
-health-check:
-  path: "/"
-  interval: 10
-  timeout: 5
-  healthy-threshold: 3
-  unhealthy-threshold: 5
+# หมายเหตุ: Health Check จะถูกกำหนดโดยอัตโนมัติโดย AWS App Runner
+# ไม่จำเป็นต้องระบุในไฟล์นี้
