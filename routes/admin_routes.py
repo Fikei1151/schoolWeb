@@ -29,15 +29,10 @@ def create_user():
         last_name = request.form.get('last_name')
         gender = request.form.get('gender')
         role = request.form.get('role')  # 'admin' / 'teacher' / 'student'
-        education_level = request.form.get('education_level')  # รับค่า education_level
 
         # ตรวจว่ามี user นี้อยู่แล้วหรือไม่
         if User.query.filter_by(citizen_id=citizen_id).first():
             flash("User already exists.", 'error')
-            return redirect(url_for('admin.create_user'))
-
-        if role == 'student' and not education_level:
-            flash("Education level is required for students.", 'error')
             return redirect(url_for('admin.create_user'))
 
         new_user = User(
@@ -45,8 +40,7 @@ def create_user():
             first_name=first_name,
             last_name=last_name,
             gender=gender,
-            role=role,
-            education_level=education_level if role == 'student' else None
+            role=role
         )
         new_user.set_password(password)
         db.session.add(new_user)

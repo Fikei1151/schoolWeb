@@ -1,80 +1,202 @@
 {% extends 'layout.html' %}
 {% block title %}สร้างผู้ใช้ (Admin){% endblock %}
 {% block content %}
-<div class="container max-w-lg mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-pink-200">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md">
+<div class="container mx-auto px-4 py-6 sm:py-8 md:py-10 max-w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl">
+    <div class="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 border border-pink-200">
+        <!-- ส่วนหัวข้อ -->
+        <h2 class="text-lg sm:text-xl md:text-2xl font-bold mb-6 sm:mb-8 text-pink-600 drop-shadow-md text-center">
             สร้างผู้ใช้ (เฉพาะ Admin)
         </h2>
-        <form method="POST" class="space-y-6">
-            <!-- Citizen ID -->
-            <div>
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">รหัสประจำตัว (13 หลัก)</label>
-                <input type="text" name="citizen_id" maxlength="13" pattern="\d{13}" 
-                       title="กรุณากรอกเลข 13 หลัก" 
-                       class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base" required>
+
+        <!-- ฟอร์มสร้างผู้ใช้ -->
+        <form method="POST" class="space-y-5 sm:space-y-6">
+            <!-- ฟิลด์ในฟอร์ม -->
+            <div class="grid grid-cols-1 gap-5 sm:gap-6">
+                <!-- Citizen ID -->
+                <div>
+                    <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">รหัสประจำตัว (13 หลัก)</label>
+                    <input type="text" 
+                           name="citizen_id" 
+                           maxlength="13" 
+                           pattern="\d{13}" 
+                           title="กรุณากรอกเลข 13 หลัก" 
+                           class="w-full border border-pink-300 px-3 sm:px-4 py-2 rounded-lg
+                                  focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                                  shadow-sm text-sm sm:text-base" 
+                           required>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">รหัสผ่าน</label>
+                    <input type="password" 
+                           name="password" 
+                           class="w-full border border-pink-300 px-3 sm:px-4 py-2 rounded-lg
+                                  focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                                  shadow-sm text-sm sm:text-base" 
+                           required>
+                </div>
+
+                <!-- First Name -->
+                <div>
+                    <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">ชื่อ</label>
+                    <input type="text" 
+                           name="first_name" 
+                           class="w-full border border-pink-300 px-3 sm:px-4 py-2 rounded-lg
+                                  focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                                  shadow-sm text-sm sm:text-base" 
+                           required>
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">นามสกุล</label>
+                    <input type="text" 
+                           name="last_name" 
+                           class="w-full border border-pink-300 px-3 sm:px-4 py-2 rounded-lg
+                                  focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                                  shadow-sm text-sm sm:text-base" 
+                           required>
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">เพศ</label>
+                    <select name="gender" 
+                            class="w-full border border-pink-300 px-3 sm:px-4 py-2 rounded-lg
+                                   focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                                   shadow-sm text-sm sm:text-base">
+                        <option value="male">ชาย</option>
+                        <option value="female">หญิง</option>
+                    </select>
+                </div>
+
+                <!-- Role -->
+                <div>
+                    <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">บทบาท (Role)</label>
+                    <select name="role" id="role-select" 
+                            class="w-full border border-pink-300 px-3 sm:px-4 py-2 rounded-lg
+                                   focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                                   shadow-sm text-sm sm:text-base">
+                        <option value="admin">Admin</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
             </div>
-            <!-- Password -->
-            <div>
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">รหัสผ่าน</label>
-                <input type="password" name="password" 
-                       class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base" required>
+
+            <!-- ปุ่ม Submit -->
+            <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
+                <button type="button" id="submit-btn"
+                        class="w-full sm:w-auto bg-pink-600 text-white px-6 py-2.5 sm:py-3 rounded-full
+                               hover:bg-pink-700 transition-all duration-300 transform
+                               hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base font-medium">
+                    สร้างผู้ใช้
+                </button>
             </div>
-            <!-- First Name -->
-            <div>
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">ชื่อ</label>
-                <input type="text" name="first_name" 
-                       class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base" required>
-            </div>
-            <!-- Last Name -->
-            <div>
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">นามสกุล</label>
-                <input type="text" name="last_name" 
-                       class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base" required>
-            </div>
-            <!-- Gender -->
-            <div>
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">เพศ</label>
-                <select name="gender" 
-                        class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
-                    <option value="male">ชาย</option>
-                    <option value="female">หญิง</option>
-                </select>
-            </div>
-            <!-- Role -->
-            <div>
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">บทบาท (Role)</label>
-                <select name="role" id="role-select" 
-                        class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base" 
-                        onchange="toggleEducationLevel()">
-                    <option value="admin">Admin</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="student">Student</option>
-                </select>
-            </div>
-            <!-- Education Level -->
-            <div class="hidden" id="education-level-field">
-                <label class="block mb-2 font-semibold text-gray-700 text-sm sm:text-base">ระดับการศึกษา</label>
-                <select name="education_level" 
-                        class="w-full border border-pink-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-pink-400 focus:border-pink-400 shadow-sm text-sm sm:text-base">
-                    <option value="primary">ประถมศึกษา (Primary)</option>
-                    <option value="secondary">มัธยมศึกษา (Secondary)</option>
-                </select>
-            </div>
-            <!-- Submit Button -->
-            <button type="submit" 
-                    class="w-full bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-sm sm:text-base">
-                สร้างผู้ใช้
-            </button>
         </form>
+
+        <!-- Confirmation Modal -->
+        <div class="relative z-10 hidden" id="confirmModal" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <!-- พื้นหลังดำโปร่งแสง -->
+            <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- กล่องโมดาล -->
+            <div class="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center px-4 py-6">
+                <!-- ใช้ w-full + max-w หลายระดับ เพื่อให้ responsive -->
+                <div class="relative w-full max-w-sm sm:max-w-md md:max-w-lg transform overflow-hidden
+                            rounded-lg bg-white text-left shadow-xl transition-all">
+                    <!-- หัวโมดาลสีชมพู -->
+                    <div class="bg-pink-600 text-white px-4 py-3 sm:py-4">
+                        <h3 class="text-base sm:text-lg md:text-xl font-semibold text-center" id="modal-title">
+                            ยืนยันการสร้างผู้ใช้
+                        </h3>
+                    </div>
+
+                    <!-- เนื้อหาโมดาล -->
+                    <div class="bg-white px-4 sm:px-5 py-4 sm:py-5">
+                        <div class="flex items-center gap-3">
+                            <!-- ไอคอนเตือน -->
+                            <div class="flex-shrink-0 flex items-center justify-center rounded-full bg-red-100
+                                        w-10 h-10 sm:w-12 sm:h-12">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71
+                                             c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378
+                                             c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12
+                                             15.75h.007v.008H12v-.008Z" />
+                                </svg>
+                            </div>
+                            <!-- ข้อความแจ้งเตือน -->
+                            <div class="flex-1">
+                                <p class="text-sm sm:text-base md:text-lg text-gray-700 text-center">
+                                    คุณแน่ใจหรือไม่ว่าต้องการสร้างผู้ใช้นี้?<br>
+                                    กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนยืนยัน
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ปุ่มยืนยันและยกเลิก -->
+                    <div class="bg-gray-50 px-4 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row
+                                justify-center gap-2 sm:gap-3">
+                        <!-- ปุ่ม "ยืนยันการสร้าง" -->
+                        <button type="button" id="confirm-btn"
+                                class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base md:text-base
+                                       font-medium bg-pink-600 text-white rounded-md hover:bg-pink-500
+                                       focus:outline-none focus:ring-2 focus:ring-pink-400">
+                            ยืนยันการสร้าง
+                        </button>
+                        <!-- ปุ่ม "ยกเลิก" -->
+                        <button type="button" id="cancel-btn"
+                                class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base md:text-base
+                                       font-medium bg-white text-gray-900 rounded-md ring-1 ring-gray-300
+                                       hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                            ยกเลิก
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /End Confirmation Modal -->
     </div>
 </div>
 
+<!-- Script ส่วนจัดการ Modal -->
 <script>
-function toggleEducationLevel() {
-    const roleSelect = document.getElementById('role-select');
-    const educationLevelField = document.getElementById('education-level-field');
-    educationLevelField.classList.toggle('hidden', roleSelect.value !== 'student');
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submit-btn');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    // กดปุ่ม 'สร้างผู้ใช้' แล้วตรวจสอบฟอร์มก่อนเปิดโมดาล
+    submitBtn.addEventListener('click', function() {
+        if (form.checkValidity()) {
+            confirmModal.classList.remove('hidden');
+        } else {
+            form.reportValidity();
+        }
+    });
+
+    // กด 'ยืนยันการสร้าง' => submit form
+    confirmBtn.addEventListener('click', function() {
+        form.submit();
+    });
+
+    // กด 'ยกเลิก' => ปิดโมดาล
+    cancelBtn.addEventListener('click', function() {
+        confirmModal.classList.add('hidden');
+    });
+
+    // คลิกนอกกล่องโมดาล => ปิด
+    confirmModal.addEventListener('click', function(e) {
+        if (e.target === confirmModal) {
+            confirmModal.classList.add('hidden');
+        }
+    });
+});
 </script>
 {% endblock %}
