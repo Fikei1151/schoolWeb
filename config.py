@@ -9,7 +9,12 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://username:password@localhost/dbname')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 5,           # จำนวน connection ที่เปิดพร้อมกัน
+        'max_overflow': 10,       # จำนวน connection เพิ่มเติมที่ยอมให้เกิน
+        'pool_timeout': 30,       # วินาทีที่รอ connection ว่าง
+        'pool_recycle': 1800,     # รีไซเคิล connection ทุก 30 นาที
+    }
     # AWS S3 Config
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
