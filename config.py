@@ -7,7 +7,7 @@ load_dotenv()  # โหลดค่าจาก .env
 class Config:
     SECRET_KEY = 'your_secret_key'
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://username:password@localhost/dbname')
-
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'database.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 5,           # จำนวน connection ที่เปิดพร้อมกัน
