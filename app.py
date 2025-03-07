@@ -9,7 +9,7 @@ from models.classroom import Classroom, ClassroomStudents
 from models.subject import Subject, ClassroomSubjects, Grade, subject_teachers
 from models.academic import AcademicSettings
 from models.registration import AdmissionPeriod, ExamRoom, StudentApplication
-from models.news import Post  # เพิ่ม Post model
+from models.post import Post  # เพิ่ม Post model
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.teacher_routes import teacher_bp
