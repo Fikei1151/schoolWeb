@@ -1,0 +1,17 @@
+{
+    "name": "Mukhtari",
+    "short_name": "Mukhtari",
+    "description": "เว็บโรงเรียนมุคตารีวิทยา",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "icons": [
+      {
+        "src": "/static/logo/logo_mtv.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  

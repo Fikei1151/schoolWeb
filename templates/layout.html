@@ -19,6 +19,17 @@
       window.history.back();
     }
   </script>
+  <!-- Web App Manifest -->
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+<!-- ไอคอนสำหรับ iOS -->
+<link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='logo/logo_mtv.png') }}">
+
+<!-- Meta Tags สำหรับมือถือ -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff">
+
 </head>
 
 <body class="bg-white text-gray-800 font-sans flex flex-col min-h-screen">
