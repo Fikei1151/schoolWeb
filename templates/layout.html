@@ -7,6 +7,7 @@
   <title>{% block title %}School Project{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo/logo_mtv.ico') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
   <script>
     function toggleMenu() {
       const menu = document.getElementById('mobileMenu');
