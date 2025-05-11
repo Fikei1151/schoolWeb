@@ -7,10 +7,10 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(mukhtati.ac.th www.mukhtati.ac.th)
+domains=("mukhtari.ac.th" "www.mukhtari.ac.th")
 rsa_key_size=4096
 data_path="./certbot"
-email="admin@mukhtati.ac.th" # ใส่อีเมลที่จะใช้สำหรับการแจ้งเตือนจาก Let's Encrypt
+email="fikree205m@gmail.com" # ใส่อีเมลที่จะใช้สำหรับการแจ้งเตือนจาก Let's Encrypt
 staging=0 # ตั้งค่าเป็น 1 ถ้าต้องการทดสอบ (ไม่สร้าง certificate จริง)
 
 if [ -d "$data_path" ]; then
@@ -21,26 +21,26 @@ if [ -d "$data_path" ]; then
   rm -rf "$data_path"
 fi
 
-mkdir -p "$data_path/conf/live/$domains"
+mkdir -p "$data_path/conf/live/${domains[0]}"
 mkdir -p "$data_path/data"
 
-echo "### สร้างแฟ้ม dummy certificate สำหรับ $domains ..."
+echo "### สร้างแฟ้ม dummy certificate สำหรับ ${domains[0]} ..."
 openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1 \
-  -keyout "$data_path/conf/live/$domains[0]/privkey.pem" \
-  -out "$data_path/conf/live/$domains[0]/fullchain.pem" \
+  -keyout "$data_path/conf/live/${domains[0]}/privkey.pem" \
+  -out "$data_path/conf/live/${domains[0]}/fullchain.pem" \
   -subj "/CN=localhost"
 
 echo "### เริ่มต้น nginx ..."
-docker-compose up -d nginx
+docker-compose up -d nginx || { echo "เกิดข้อผิดพลาดในการเริ่ม nginx"; exit 1; }
 
 echo "### ขอใบรับรอง SSL จริงจาก Let's Encrypt ..."
-docker-compose run --rm --entrypoint "\
-  certbot certonly --webroot -w /var/www/certbot \
+# ใช้ certbot แทน mukhtari_certbot เพราะเราอาจมีปัญหากับการเรียกชื่อ container
+docker-compose run --rm certbot certonly --webroot -w /var/www/certbot \
     --email $email \
     -d ${domains[0]} -d ${domains[1]} \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
-    --force-renewal" mukhtari_certbot
+    --force-renewal || { echo "เกิดข้อผิดพลาดในการขอใบรับรอง SSL"; exit 1; }
 
 echo "### เสร็จสิ้น! ทำการรีสตาร์ท nginx ..."
-docker-compose restart nginx 
+docker-compose restart nginx || { echo "เกิดข้อผิดพลาดในการรีสตาร์ท nginx"; exit 1; } 

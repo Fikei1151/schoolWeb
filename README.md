@@ -71,7 +71,7 @@ cat backup.sql | docker-compose exec -T db psql -U schoolweb schoolwebdb
 
 ระบบนี้ได้รับการปรับให้ใช้ Local Storage แทน AWS S3 เพื่อลดค่าใช้จ่าย โดยฟังก์ชันใน utils/s3_utils.py ยังคงชื่อเดิมแต่ถูกปรับให้ทำงานกับไฟล์ในระบบแทน 
 
-## การตั้งค่าโดเมนและ SSL สำหรับ mukhtati.ac.th
+## การตั้งค่าโดเมนและ SSL สำหรับ mukhtari.ac.th
 
 ### ขั้นตอนการตั้งค่า Nginx สำหรับโดเมน
 
@@ -88,7 +88,7 @@ cat backup.sql | docker-compose exec -T db psql -U schoolweb schoolwebdb
 
 3. **ตั้งค่า DNS ของโดเมน**
    - เข้าไปที่ผู้ให้บริการโดเมนของคุณ (เช่น GoDaddy, Namecheap, หรือ Thai Name Server)
-   - สร้าง A record สำหรับ `mukhtati.ac.th` และ `www.mukhtati.ac.th` ที่ชี้ไปที่ IP ของเซิร์ฟเวอร์คุณ
+   - สร้าง A record สำหรับ `mukhtari.ac.th` และ `www.mukhtari.ac.th` ที่ชี้ไปที่ IP ของเซิร์ฟเวอร์คุณ
    - รอให้การเปลี่ยนแปลง DNS มีผล (อาจใช้เวลา 24-48 ชั่วโมง)
 
 4. **โคลน Git Repository**
@@ -103,54 +103,14 @@ cat backup.sql | docker-compose exec -T db psql -U schoolweb schoolwebdb
    # แก้ไขค่าในไฟล์ .env ตามต้องการ
    ```
 
-6. **การตั้งค่าพอร์ตเมื่อเซิร์ฟเวอร์มีการใช้งานพอร์ต 80/443 อยู่แล้ว**
-   
-   เราได้ปรับพอร์ตของ Nginx ให้ใช้งานพอร์ต 8080/8443 แทนเพื่อหลีกเลี่ยงความขัดแย้ง:
-   
-   - พอร์ต HTTP: 8080 (แทน 80)
-   - พอร์ต HTTPS: 8443 (แทน 443)
-   
-   คุณมีทางเลือกเพิ่มเติม:
-   
-   a) **ใช้พอร์ตทางเลือก** (แนะนำสำหรับการทดสอบ):
-      - ไม่ต้องแก้ไขอะไรเพิ่มเติม เข้าถึงเว็บไซต์ผ่าน `http://mukhtati.ac.th:8080` หรือ `https://mukhtati.ac.th:8443`
-   
-   b) **ตั้งค่า Reverse Proxy เพิ่มเติม** (แนะนำสำหรับการใช้งานจริง):
-      - ใช้ Nginx หลักที่อยู่บนพอร์ต 80/443 ในการ reverse proxy ไปยังเว็บแอปพลิเคชันของคุณที่รันบนพอร์ต 8080/8443
-      
-      ตัวอย่างการตั้งค่า Nginx สำหรับ reverse proxy:
-      ```
-      server {
-          listen 80;
-          server_name mukhtati.ac.th www.mukhtati.ac.th;
-          
-          location / {
-              proxy_pass http://localhost:8080;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-          }
-      }
-      
-      server {
-          listen 443 ssl;
-          server_name mukhtati.ac.th www.mukhtati.ac.th;
-          
-          # ใส่ SSL configuration ที่นี่
-          
-          location / {
-              proxy_pass https://localhost:8443;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-          }
-      }
-      ```
-
-7. **รัน init-letsencrypt.sh เพื่อตั้งค่า SSL certificates**
+6. **รัน init-letsencrypt.sh เพื่อตั้งค่า SSL certificates**
    ```
    sudo ./init-letsencrypt.sh
    ```
+   
+   สคริปต์นี้จะขอใบรับรอง SSL จาก Let's Encrypt โดยใช้อีเมล fikree205m@gmail.com สำหรับการแจ้งเตือน
 
-8. **เริ่มระบบด้วย Docker Compose**
+7. **เริ่มระบบด้วย Docker Compose**
    ```
    docker-compose up -d
    ```
@@ -166,7 +126,7 @@ sudo crontab -e
 เพิ่มบรรทัดนี้เพื่อรันสคริปต์ต่ออายุทุกวันที่ 1 ของเดือน:
 
 ```
-0 0 1 * * docker-compose -f /path/to/schoolWeb/docker-compose.yml run --rm mukhtari_certbot renew && docker-compose -f /path/to/schoolWeb/docker-compose.yml restart nginx
+0 0 1 * * docker-compose -f /path/to/schoolWeb/docker-compose.yml run --rm certbot renew && docker-compose -f /path/to/schoolWeb/docker-compose.yml restart nginx
 ```
 
 ### การแก้ไขปัญหาทั่วไป
