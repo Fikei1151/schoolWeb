@@ -11,7 +11,7 @@ domains=("mukhtari.ac.th" "www.mukhtari.ac.th")
 rsa_key_size=4096
 data_path="./certbot"
 email="fikree205m@gmail.com" # ใส่อีเมลที่จะใช้สำหรับการแจ้งเตือนจาก Let's Encrypt
-staging=0 # ตั้งค่าเป็น 1 ถ้าต้องการทดสอบ (ไม่สร้าง certificate จริง)
+staging=1 # ตั้งค่าเป็น 1 เพื่อการทดสอบ (จะไม่สร้าง certificate จริง)
 
 if [ -d "$data_path" ]; then
   read -p "โฟลเดอร์ $data_path มีอยู่แล้ว (certificates อาจจะมีอยู่แล้ว). ต้องการลบและเริ่มใหม่หรือไม่? (y/N): " decision
@@ -21,26 +21,77 @@ if [ -d "$data_path" ]; then
   rm -rf "$data_path"
 fi
 
+# สร้างโฟลเดอร์ทั้งหมดที่จำเป็น
 mkdir -p "$data_path/conf/live/${domains[0]}"
 mkdir -p "$data_path/data"
+mkdir -p "$data_path/www"
 
 echo "### สร้างแฟ้ม dummy certificate สำหรับ ${domains[0]} ..."
 openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1 \
   -keyout "$data_path/conf/live/${domains[0]}/privkey.pem" \
   -out "$data_path/conf/live/${domains[0]}/fullchain.pem" \
-  -subj "/CN=localhost"
+  -subj "/CN=localhost" 2>/dev/null
+
+# ตรวจสอบว่า certificates มีอยู่จริง
+if [ ! -f "$data_path/conf/live/${domains[0]}/privkey.pem" ] || [ ! -f "$data_path/conf/live/${domains[0]}/fullchain.pem" ]; then
+  echo "Error: Failed to create dummy certificates"
+  exit 1
+fi
 
 echo "### เริ่มต้น nginx ..."
+docker-compose down
 docker-compose up -d nginx || { echo "เกิดข้อผิดพลาดในการเริ่ม nginx"; exit 1; }
 
+# รอให้ nginx พร้อมใช้งาน
+sleep 5
+
 echo "### ขอใบรับรอง SSL จริงจาก Let's Encrypt ..."
-# ใช้ certbot แทน mukhtari_certbot เพราะเราอาจมีปัญหากับการเรียกชื่อ container
-docker-compose run --rm certbot certonly --webroot -w /var/www/certbot \
+# เพิ่ม verbose logging เพื่อแสดงข้อผิดพลาดอย่างละเอียด
+# ใช้ --dry-run เพื่อทดสอบกระบวนการโดยไม่ทำการสร้าง certificate จริง
+if [ $staging != "0" ]; then
+  staging_arg="--staging"
+else
+  staging_arg=""
+fi
+
+docker-compose run --rm certbot certonly --webroot \
+  -w /var/www/certbot \
+  $staging_arg \
+  --dry-run \
+  -v \
+  --email $email \
+  -d ${domains[0]} -d ${domains[1]} \
+  --rsa-key-size $rsa_key_size \
+  --agree-tos \
+  --no-eff-email \
+  --force-renewal || { 
+    echo "เกิดข้อผิดพลาดในการขอใบรับรอง SSL"; 
+    echo "ลองตรวจสอบข้อมูลโดเมนและการตั้งค่า DNS";
+    exit 1; 
+  }
+
+echo "### ทดสอบการขอ certificate สำเร็จ! กำลังขอใบรับรองที่สามารถใช้งานได้จริง..."
+# หลังจากทดสอบสำเร็จ จึงขอใบรับรองจริง (ถ้าไม่ได้อยู่ในโหมด staging)
+if [ $staging = "0" ]; then
+  docker-compose run --rm certbot certonly --webroot \
+    -w /var/www/certbot \
     --email $email \
     -d ${domains[0]} -d ${domains[1]} \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
-    --force-renewal || { echo "เกิดข้อผิดพลาดในการขอใบรับรอง SSL"; exit 1; }
+    --no-eff-email \
+    --force-renewal || { 
+      echo "เกิดข้อผิดพลาดในการขอใบรับรอง SSL จริง"; 
+      exit 1; 
+    }
+fi
 
 echo "### เสร็จสิ้น! ทำการรีสตาร์ท nginx ..."
-docker-compose restart nginx || { echo "เกิดข้อผิดพลาดในการรีสตาร์ท nginx"; exit 1; } 
+docker-compose restart nginx || { echo "เกิดข้อผิดพลาดในการรีสตาร์ท nginx"; exit 1; }
+
+echo "### คำแนะนำเพิ่มเติม:"
+echo "1. ในการทดสอบ สคริปต์จะใช้โหมด staging และ dry-run"
+echo "2. เพื่อขอใบรับรองจริง ให้แก้ไข staging=0 ในสคริปต์นี้ และรันใหม่อีกครั้ง"
+echo "3. ตรวจสอบให้แน่ใจว่า DNS ของโดเมน ${domains[0]} และ ${domains[1]} ชี้มาที่ IP ของเซิร์ฟเวอร์นี้"
+echo "4. ตรวจสอบว่าพอร์ต 80 และ 443 เปิดไว้ในไฟร์วอลล์"
+echo "5. สำหรับการทำงานจริง ให้แก้ไข docker-compose.yml เพื่อนำบรรทัด --staging และ --dry-run ออก" 
