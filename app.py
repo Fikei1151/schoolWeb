@@ -21,10 +21,20 @@ from routes.registration_routes import registration_bp
 from flask_session import Session
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
+import logging
+
+# ลดระดับ logging เพื่อลดการใช้ CPU และ I/O
+logging.basicConfig(level=logging.WARNING)
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # ปรับแต่งการตั้งค่า Flask Session เพื่อลดการใช้หน่วยความจำ
+    app.config['SESSION_USE_SIGNER'] = False  # ไม่ต้องเข้ารหัสลายเซ็น session
+    app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # ลดเวลา session เหลือ 30 นาที
+    app.config['SESSION_FILE_THRESHOLD'] = 100  # จำกัดจำนวนไฟล์ session
+    
     Session(app)
 
     # ตั้งค่าโฟลเดอร์สำหรับอัปโหลด
@@ -45,6 +55,14 @@ def create_app():
     # Initialize database and migration
     db.init_app(app)
     migrate = Migrate(app, db)
+    
+    # ปรับแต่ง SQLAlchemy engine เพื่อประหยัด CPU และหน่วยความจำ
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_size': 5,  # ลดขนาด pool
+        'max_overflow': 7,  # ลดการ overflow ของ connections 
+        'pool_timeout': 10,  # ลด timeout ลง
+        'pool_recycle': 1800,  # รีไซเคิล connections ทุก 30 นาที
+    }
 
     # Initialize login manager
     login_manager = LoginManager()
@@ -107,10 +125,16 @@ def create_app():
                 return path
             return get_file_url(path)
         return dict(get_upload_url=get_upload_url)
-
+    
+    # ปิดการใช้งาน propagate_exceptions เพื่อลดการสร้าง stack traces
+    app.config['PROPAGATE_EXCEPTIONS'] = False
+    
+    # ปิดการใช้งาน debug mode ในกรณีที่มีการเปิดใช้
+    app.config['DEBUG'] = False
+    
     return app
 
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8000)
+    app.run(debug=False, host="0.0.0.0", port=8000)

@@ -150,3 +150,48 @@ sudo crontab -e
    ```
    docker-compose restart nginx
    ```
+
+## การปรับแต่งระบบเพื่อลดการใช้ CPU
+
+เพื่อลดการใช้ CPU และหน่วยความจำ ระบบได้รับการปรับแต่งดังนี้:
+
+### 1. จำกัดทรัพยากรของ Docker Containers
+
+ทุก container ได้รับการจำกัดการใช้ CPU และหน่วยความจำด้วย Docker Compose:
+- **db (PostgreSQL)**: 50% CPU, 512MB หน่วยความจำ
+- **web (Flask)**: 50% CPU, 512MB หน่วยความจำ
+- **pgadmin**: 30% CPU, 256MB หน่วยความจำ
+- **nginx**: 25% CPU, 128MB หน่วยความจำ
+- **certbot**: 20% CPU, 128MB หน่วยความจำ
+
+### 2. ปรับแต่ง Gunicorn
+
+Gunicorn ได้รับการปรับแต่งเพื่อลดการใช้ทรัพยากร:
+- ลดจำนวน workers จาก 4 เป็น 2
+- เพิ่ม threads เป็น 2 เพื่อรองรับการทำงานแบบ concurrent
+- ตั้งค่า max-requests เพื่อป้องกัน memory leak
+- เพิ่ม timeout เป็น 120 วินาทีเพื่อรองรับการทำงานที่ใช้เวลานาน
+
+### 3. ปรับแต่ง Nginx
+
+การตั้งค่า Nginx ได้รับการปรับแต่ง:
+- ลดจำนวน worker processes 
+- จำกัด connections ต่อ worker
+- ปรับขนาด buffer และ cache
+- เพิ่ม gzip compression เพื่อลด bandwidth
+- ตั้งค่า cache-control สำหรับไฟล์ static
+
+### 4. ปรับแต่ง Flask Application
+
+- ลดระดับ logging เพื่อลดการใช้ CPU และ I/O
+- ปรับการตั้งค่า session เพื่อลดการใช้หน่วยความจำ
+- ปรับ SQLAlchemy connection pool เพื่อจำกัดการใช้ทรัพยากร
+- ปิดการใช้งาน debug mode
+
+### 5. การบำรุงรักษาเพิ่มเติม
+
+หากยังมีปัญหาเรื่องการใช้ CPU สูง ให้พิจารณา:
+- ติดตั้ง monitoring tools เช่น Prometheus และ Grafana เพื่อตรวจสอบ performance
+- ตรวจสอบ slow queries ใน PostgreSQL และเพิ่ม index ตามความเหมาะสม
+- พิจารณาการเพิ่ม caching layer เช่น Redis สำหรับข้อมูลที่เข้าถึงบ่อย
+- หากจำเป็น ปรับเพิ่มทรัพยากรของเซิร์ฟเวอร์

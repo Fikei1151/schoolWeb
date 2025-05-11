@@ -19,6 +19,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   # Flask Web Application
   web:
@@ -40,6 +47,13 @@ services:
       - .env
     networks:
       - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   # pgAdmin สำหรับจัดการฐานข้อมูล
   pgadmin:
@@ -56,6 +70,11 @@ services:
       - app-network
     depends_on:
       - db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
 
   # Nginx Server
   nginx:
@@ -74,6 +93,11 @@ services:
       - ./certbot/data:/var/www/certbot
     networks:
       - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
 
   # Certbot สำหรับการจัดการ SSL certificates
   certbot:
@@ -82,6 +106,11 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/data:/var/www/certbot
     command: certonly --webroot --webroot-path=/var/www/certbot --email fikree205m@gmail.com --agree-tos --no-eff-email --staging -d mukhtari.ac.th -d www.mukhtari.ac.th
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 128M
 
 networks:
   app-network:
