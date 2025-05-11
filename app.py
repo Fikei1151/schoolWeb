@@ -1,9 +1,9 @@
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, url_for, send_from_directory
 from config import Config
 from database import db
 import os
 from datetime import datetime
-from utils.s3_utils import s3_client, upload_file_to_s3
+from utils.s3_utils import storage, upload_file_to_storage, get_file_url
 from models.user import User, StudentProfile, GuardianProfile
 from models.classroom import Classroom, ClassroomStudents
 from models.subject import Subject, ClassroomSubjects, Grade, subject_teachers
@@ -27,10 +27,20 @@ def create_app():
     app.config.from_object(Config)
     Session(app)
 
-    app.config['UPLOAD_FOLDER'] = Config.UPLOAD_FOLDER
+    # ตั้งค่าโฟลเดอร์สำหรับอัปโหลด
+    # สร้างโฟลเดอร์ในเซิร์ฟเวอร์ถ้ายังไม่มี
+    upload_folder = app.config['UPLOAD_FOLDER']
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder, exist_ok=True)
+    
+    # สร้างโฟลเดอร์ย่อยสำหรับประเภทไฟล์ต่างๆ
+    os.makedirs(os.path.join(upload_folder, 'uploads'), exist_ok=True)
+    os.makedirs(os.path.join(upload_folder, 'profile_pics'), exist_ok=True)
+    
+    # สร้างโฟลเดอร์ static/uploads สำหรับเก็บไฟล์ชั่วคราวหากจำเป็น
     local_upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
     if not os.path.exists(local_upload_folder):
-        os.makedirs(local_upload_folder)
+        os.makedirs(local_upload_folder, exist_ok=True)
 
     # Initialize database and migration
     db.init_app(app)
@@ -65,46 +75,42 @@ def create_app():
     def index():
         return render_template('index.html')
 
-    # ตรวจสอบและสร้างตารางถ้ายังไม่มี
+    # Initialize database tables
     with app.app_context():
         try:
-            # ตรวจสอบตารางที่มีอยู่ใน database
+            db.create_all()
+            print("Database tables created successfully!")
+            
             inspector = db.inspect(db.engine)
             existing_tables = inspector.get_table_names()
-
-            # ดึงตารางจาก models อัตโนมัติ (ที่ inherit จาก db.Model)
-            expected_tables = [model.__tablename__ for model in db.Model.__subclasses__()]
-
-            # เพิ่มตารางที่กำหนดแบบ manual (เช่น db.Table)
-            manual_tables = [
-                'subject_teachers',  # จาก subject_teachers (ตารางกลาง)
-                'classroom_students'  # จาก ClassroomStudents (ตารางกลาง)
-            ]
-            expected_tables.extend(manual_tables)
-
-            # ตรวจสอบว่ามีตารางครบหรือไม่
-            missing_tables = [table for table in expected_tables if table not in existing_tables]
-
-            if missing_tables:
-                print(f"Missing tables: {missing_tables}. Creating tables...")
-                # สร้างตารางที่ไม่มี
-                db.create_all()
-                print("Tables created successfully!")
-            else:
-                print("All tables already exist. No need to create.")
-
-            # (ถ้ามี Flask-Migrate) รัน migration เพื่อให้แน่ใจว่าตาราง sync กับ models
-            # ถ้าคุณใช้ Flask-Migrate และมีการเปลี่ยนแปลงใน models
-            # คุณควรรัน migration ด้วยคำสั่ง:
-            # flask db migrate -m "Initial migration"
-            # flask db upgrade
-
+            print(f"Available tables: {', '.join(existing_tables)}")
+            
         except Exception as e:
-            print(f"Error checking or creating tables: {str(e)}")
+            print(f"Error creating database tables: {str(e)}")
+
+    # File access routes
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'uploads'), filename)
+    
+    @app.route('/profile_pics/<path:filename>')
+    def profile_image(filename):
+        return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'profile_pics'), filename)
+
+    # File URL helper
+    @app.context_processor
+    def utility_processor():
+        def get_upload_url(path):
+            if not path:
+                return None
+            if path.startswith(('http://', 'https://')):
+                return path
+            return get_file_url(path)
+        return dict(get_upload_url=get_upload_url)
 
     return app
 
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8000)
+    app.run(debug=True, host="0.0.0.0", port=8000)

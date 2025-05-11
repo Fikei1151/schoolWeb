@@ -1,79 +1,86 @@
-import boto3
-from config import Config
 import os
+from config import Config
+from werkzeug.utils import secure_filename
+import uuid
+from datetime import datetime
 
-# ตั้งค่า S3 Client
-def create_s3_client(config):
-    """สร้าง S3 client จากการตั้งค่า"""
-    if config.AWS_ACCESS_KEY_ID and config.AWS_SECRET_ACCESS_KEY:
-        return boto3.client(
-            "s3",
-            aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-            region_name=config.AWS_S3_REGION
-        )
-    return None
+# ตรวจสอบและสร้างโฟลเดอร์ถ้าไม่มี
+def ensure_folder_exists(folder_path):
+    """Create folder if it doesn't exist"""
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path, exist_ok=True)
 
-# ฟังก์ชันอัปโหลดไฟล์ไปยัง S3
-def upload_file_to_s3(file, folder="uploads", filename=None):
-    """อัปโหลดไฟล์ไปยัง S3 และคืนค่า URL"""
-    if not s3_client:
+# สร้างชื่อไฟล์ที่ไม่ซ้ำกัน
+def generate_unique_filename(original_filename):
+    """Generate unique filename using timestamp and UUID"""
+    filename, extension = os.path.splitext(original_filename)
+    unique_name = f"{filename}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{str(uuid.uuid4())[:8]}{extension}"
+    return secure_filename(unique_name)
+
+def init_storage():
+    """Initialize local storage folders"""
+    folders = ['uploads', 'profile_pics', 'temp']
+    for folder in folders:
+        folder_path = os.path.join(Config.UPLOAD_FOLDER, folder)
+        ensure_folder_exists(folder_path)
+    return True
+
+# ฟังก์ชันอัปโหลดไฟล์ไปยังโฟลเดอร์ท้องถิ่น แทน S3
+def upload_file_to_storage(file, folder="uploads", filename=None):
+    """Save file to local storage and return URL path"""
+    if not file:
         return None
         
     if filename is None:
-        filename = file.filename
-        
-    object_name = f"{folder}/{filename}"
+        filename = generate_unique_filename(file.filename)
+    else:
+        filename = secure_filename(filename)
     
-    # อ่านข้อมูลไฟล์ทั้งหมดก่อนอัปโหลด
+    target_folder = os.path.join(Config.UPLOAD_FOLDER, folder)
+    ensure_folder_exists(target_folder)
+    file_path = os.path.join(target_folder, filename)
+    
     try:
-        # บันทึกตำแหน่งปัจจุบัน
         current_position = file.tell()
-        # กลับไปที่ต้นไฟล์
         file.seek(0)
+        file.save(file_path)
+        file.seek(current_position)
         
-        # อัปโหลดไฟล์โดยใช้ upload_fileobj ซึ่งเร็วกว่า put_object
-        try:
-            s3_client.upload_fileobj(
-                file,
-                Config.AWS_S3_BUCKET,
-                object_name,
-                ExtraArgs={
-                    'ACL': 'public-read',  # ตั้งค่าให้ไฟล์เป็นสาธารณะ
-                    'ContentType': file.content_type  # ตั้งค่า Content-Type ให้ถูกต้อง
-                }
-            )
-            
-            # กลับไปที่ตำแหน่งเดิม
-            file.seek(current_position)
-            
-            return f"https://{Config.AWS_S3_BUCKET}.s3.{Config.AWS_S3_REGION}.amazonaws.com/{object_name}"
-        except Exception as e:
-            print(f"Error uploading to S3: {e}")
-            # กลับไปที่ตำแหน่งเดิม
-            file.seek(current_position)
-            return None
-            
-    except ValueError as e:
-        # ถ้าไฟล์ถูกปิดไปแล้ว
-        print(f"File error: {e}")
-        return None
-
-# ฟังก์ชันสร้าง presigned URL สำหรับการดาวน์โหลดไฟล์จาก S3
-def get_presigned_url(object_name, expiration=3600):
-    """สร้าง presigned URL สำหรับการดาวน์โหลดไฟล์จาก S3"""
-    if not s3_client:
-        return None
-        
-    try:
-        response = s3_client.generate_presigned_url('get_object',
-                                                    Params={'Bucket': Config.AWS_S3_BUCKET,
-                                                            'Key': object_name},
-                                                    ExpiresIn=expiration)
-        return response
+        return f"{Config.UPLOADS_URL_PATH}{folder}/{filename}"
     except Exception as e:
-        print(f"Error generating presigned URL: {e}")
+        print(f"Error saving file: {e}")
         return None
 
-# สร้าง S3 client
-s3_client = create_s3_client(Config)
+def get_file_url(object_name):
+    """Get URL path for file download from local storage"""
+    if '/' in object_name:
+        folder, filename = object_name.split('/', 1)
+        return f"{Config.UPLOADS_URL_PATH}{folder}/{filename}"
+    return f"{Config.UPLOADS_URL_PATH}uploads/{object_name}"
+
+def delete_file(object_name):
+    """Delete file from local storage"""
+    try:
+        if '/' in object_name:
+            folder, filename = object_name.split('/', 1)
+        else:
+            folder, filename = 'uploads', object_name
+            
+        file_path = os.path.join(Config.UPLOAD_FOLDER, folder, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return True
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+    return False
+
+# ฟังก์ชันอัปโหลดไฟล์ไปยัง S3 (ใช้ local storage แทนเนื่องจากยังไม่มีการตั้งค่า S3)
+def upload_file_to_s3(file, folder="uploads", filename=None):
+    """
+    อัปโหลดไฟล์ไปยัง S3 (แต่ตอนนี้ใช้ local storage แทนเนื่องจากยังไม่มีการตั้งค่า S3)
+    """
+    # เรียกใช้ฟังก์ชัน upload_file_to_storage แทน
+    return upload_file_to_storage(file, folder, filename)
+
+# Initialize storage
+storage = init_storage()

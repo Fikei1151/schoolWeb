@@ -1,0 +1,94 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # เลือกพอร์ตที่ไม่ซ้ำกับที่ใช้อยู่ - ภายใน:ภายนอก
+      - "5433:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Web Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    # พอร์ตไม่จำเป็นต้องเปิดเมื่อใช้ Nginx
+    # ports:
+    #   - "8001:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./profile_pics:/app/profile_pics
+      - ./static:/app/static
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  # pgAdmin สำหรับจัดการฐานข้อมูล
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@schoolweb.com
+      PGADMIN_DEFAULT_PASSWORD: schoolwebadmin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+  # Nginx Server
+  nginx:
+    image: nginx:latest
+    restart: always
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./static:/app/static
+      - ./uploads:/app/uploads
+      - ./certbot/conf:/etc/nginx/ssl
+      - ./certbot/data:/var/www/certbot
+    networks:
+      - app-network
+
+  # Certbot สำหรับการจัดการ SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/data:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot --email admin@mukhtati.ac.th --agree-tos --no-eff-email --staging -d mukhtati.ac.th -d www.mukhtati.ac.th
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads:
+  pgadmin_data: 

@@ -17,776 +17,273 @@
       const dd = document.getElementById(id);
       dd.classList.toggle('hidden');
     }
-    function goBack() {
-      window.history.back();
+    function toggleSidebar() {
+      const sidebar = document.getElementById('logo-sidebar');
+      sidebar.classList.toggle('-translate-x-full');
+      const content = document.querySelector('.p-content');
+      content.classList.toggle('sm:ml-64');
+      content.classList.toggle('ml-0');
     }
   </script>
-
-  <!-- ไอคอนสำหรับ iOS -->
-  <link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='logo/mukhtari_icon_2d.png') }}">
-
-  <!-- Meta Tags สำหรับมือถือ -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#ffffff">
 </head>
 
-<body class="bg-white text-gray-800 font-sans flex flex-col min-h-screen">
-  <nav class="bg-gradient-to-r from-pink-500 to-rose-500 shadow-lg">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <a href="{{ url_for('index') }}" class="hover:opacity-90 transition-opacity duration-300">
-          <img src="{{ url_for('static', filename='logo/logo_mtv_landingpage.png') }}" alt="Logo โรงเรียน"
-          class="h-[100px] w-auto scale-125 md:scale-150">
-        </a>
-      </div>
-
-      <!-- Desktop Navigation -->
-      <div class="hidden md:flex items-center space-x-4">
-        {% if current_user.is_authenticated %}
-        <span class="text-sm text-white bg-pink-600 px-3 py-1 rounded-full">
-          Role: <b>{{ current_user.role|capitalize }}</b>
-        </span>
-        <div class="relative">
-          <a href="{{ url_for('user.profile') }}"
-            class="flex items-center space-x-2 text-white hover:text-pink-200 transition-colors duration-300">
-            {% if current_user.profile_image %}
-              {% if current_user.profile_image.startswith('http') %}
-                <img src="{{ current_user.profile_image }}"
-                  alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+<body class="bg-white text-gray-800 w-full font-sans flex flex-col min-h-screen">
+  <div class="flex flex-col h-screen overflow-auto">
+    
+    <!-- Navbar -->
+    <nav class="fixed top-0 z-50 w-full bg-gradient-to-r from-pink-500 to-red-500 shadow-lg h-20 flex items-center px-3">
+      <div class="h-full w-full p-1 flex flex-row justify-between">
+        <div class="flex">
+          <a href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='logo/logo_mtv_landingpage.png') }}" 
+                 alt="Logo โรงเรียน"   
+                 class="h-full w-auto">
+          </a>
+        </div>
+      
+        <!-- ส่วนปุ่มและรูปโปรไฟล์ ชิดขวาสุด -->
+        <div class="relative flex">
+          {% if current_user.is_authenticated %}
+            <button onclick="toggleDropdown('userMenu')" class="flex items-center space-x-2 focus:outline-none">
+              {% if current_user.profile_image %}
+                {% if current_user.profile_image.startswith('http') %}
+                  <img src="{{ current_user.profile_image }}"
+                    alt="โปรไฟล์" class="w-10 h-10 rounded-full border-2 border-pink-300 shadow-md object-cover">
+                {% else %}
+                  <img src="{{ url_for('static', filename=current_user.profile_image.replace('static/', '', 1)) }}"
+                    alt="โปรไฟล์" class="w-10 h-10 rounded-full border-2 border-pink-300 shadow-md object-cover">
+                {% endif %}
               {% else %}
-                <img src="{{ url_for('static', filename=current_user.profile_image.replace('static/', '', 1)) }}"
-                  alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+                <img src="{{ url_for('static', filename='profile_pics/default_profile.png') }}"
+                  alt="โปรไฟล์" class="w-10 h-10 rounded-full border-2 border-pink-300 shadow-md object-cover">
               {% endif %}
-            {% else %}
-              <img src="{{ url_for('static', filename='profile_pics/default_profile.png') }}"
-                alt="โปรไฟล์" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow-md object-cover">
+              <span class="hidden md:inline text-sm font-medium text-white">
+                {{ current_user.first_name }} {{ current_user.last_name }}
+              </span>
+              <!-- ไอคอนลูกศรลง -->
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+      
+            <!-- เมนูดรอปดาวน์ -->
+            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 top-20 z-10 border border-pink-100">
+              <a href="{{ url_for('user.profile') }}"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600">
+                โปรไฟล์
+              </a>
+              <a href="{{ url_for('auth.logout') }}"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600">
+                ออกจากระบบ
+              </a>
+            </div>
+          {% else %}
+            
+           
+              <button href="{{ url_for('auth.login') }}"  type="button" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+            
+            เข้าสู่ระบบ
+                
+
+              </button>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+     
+    <div class="flex mt-20">
+      <!-- Sidebar -->
+      <aside id="logo-sidebar" class="fixed top-20 left-0 z-40 w-64 h-[calc(100%-5rem)] transition-transform -translate-x-full sm:translate-x-0 bg-white border-r border-gray-200">
+        <div class="h-full px-3 pb-4 overflow-y-auto">
+          <ul class="space-y-2 font-medium mt-6">
+            <!-- หน้าแรก -->
+            <li>
+              <a href="{{ url_for('index') }}" class="p-2 block text-gray-900 hover:bg-pink-50">หน้าแรก</a>
+            </li>
+            <!-- ข่าวสาร -->
+            <li>
+              <a href="{{ url_for('news.news_feed') }}" class="p-2 block text-gray-900 hover:bg-pink-50">ข่าวสาร</a>
+            </li>
+      
+            <!-- เมนูสำหรับผู้ใช้ที่ยังไม่เข้าสู่ระบบ -->
+            {% if not current_user.is_authenticated %}
+            <li>
+              <a href="{{ url_for('registration.register_form') }}" class="p-2 block text-gray-900 hover:bg-pink-50">สมัครเรียน</a>
+            </li>
+            <li>
+              <div class="relative">
+                <button onclick="toggleDropdown('adminRegistrationMenu')" class="p-2 block text-gray-900 hover:bg-pink-50 w-full text-left">
+                  การรับสมัคร
+                  <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div id="adminRegistrationMenu" class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-64 bg-white rounded-xl shadow-xl border border-pink-200">
+                  <div class="p-4 space-y-2">
+                    <a href="{{ url_for('registration.register_form') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">สมัครเรียน</a>
+                    <a href="{{ url_for('registration.search_form') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">ค้นหาใบสมัคร</a>
+                  </div>
+                </div>
+              </div>
+            </li>
             {% endif %}
-            <span class="hidden md:inline text-sm font-medium">
-              {{ current_user.first_name }} {{ current_user.last_name }}
-            </span>
-          </a>
+      
+            <!-- เมนูสำหรับผู้ใช้ที่เข้าสู่ระบบแล้ว -->
+            {% if current_user.is_authenticated %}
+              {% if current_user.role == 'admin' %}
+              <!-- เมนูจัดการระบบ (Admin) -->
+              <li>
+                <li class="relative">
+                  <button type="button" onclick="toggleDropdown('adminMenu')" 
+                      class="flex items-center justify-between w-full p-3 text-gray-900 transition duration-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                      
+                      <!-- ไอคอน -->
+                      <div class="flex items-center">
+                          <svg class="w-6 h-6 mr-2 text-gray-600 group-hover:text-gray-900 transition duration-300" 
+                              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                          </svg>
+                          <span class="text-base font-medium">จัดการระบบ</span>
+                      </div>
+              
+                      <!-- ไอคอนลูกศร -->
+                      <svg class="w-4 h-4 transition-transform duration-300" id="adminMenuArrow" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 10 6">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                      </svg>
+                  </button>
+              
+                  <!-- Dropdown Menu -->
+                  <div id="adminMenu" class="hidden transition-all duration-300 ease-in-out absolute left-0 z-20 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200">
+                      <div class="p-4 space-y-2">
+                          <h3 class="text-xs font-semibold text-gray-500 uppercase">การจัดการผู้ใช้</h3>
+                          <a href="{{ url_for('admin.create_user') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">สร้างผู้ใช้</a>
+              
+                          <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">การจัดการห้องเรียน</h3>
+                          <a href="{{ url_for('admin.create_classroom') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">สร้างห้องเรียน</a>
+                          <a href="{{ url_for('admin.list_classrooms') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">จัดการห้องเรียน</a>
+                          <a href="{{ url_for('admin.add_student_to_classroom_all') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">เพิ่มนักเรียนเข้าห้อง</a>
+              
+                          <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">การจัดการวิชา</h3>
+                          <a href="{{ url_for('admin.admin_manage_subjects') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">จัดการรายวิชา</a>
+                          <a href="{{ url_for('subject.list_subjects') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">รายวิชาทั้งหมด</a>
+              
+                          <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">อื่น ๆ</h3>
+                          <a href="{{ url_for('admin.academic_settings') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">ตั้งค่าปีการศึกษา</a>
+                          <a href="{{ url_for('news.approve_news') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">อนุมัติข่าวสาร</a>
+                          <a href="#" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">รายงาน</a>
+                      </div>
+                  </div>
+              </li>
+              
+              <li>
+                <button type="button" onclick="toggleDropdown('adminRegistrationMenu')" 
+                    class="flex items-center justify-between w-full p-3 text-gray-900 transition duration-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    
+                    <!-- ไอคอน -->
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-gray-600 group-hover:text-gray-900 transition duration-300" 
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 2a8 8 0 100 16 8 8 0 000-16zm0 4a4 4 0 110 8 4 4 0 010-8z" />
+                        </svg>
+                        <span class="text-base font-medium">จัดการการรับสมัคร</span>
+                    </div>
+            
+                    <!-- ไอคอนลูกศร -->
+                    <svg class="w-4 h-4 transition-transform duration-300" id="adminRegistrationMenuArrow" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 10 6">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                    </svg>
+                </button>
+            
+                <!-- Dropdown Menu -->
+                <div id="adminRegistrationMenu" class="hidden transition-all duration-300 ease-in-out absolute left-0 z-10 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div class="p-4 space-y-2">
+                        <a href="{{ url_for('registration.admin_admission_periods') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">ช่วงเวลารับสมัคร</a>
+                        <a href="{{ url_for('registration.admin_exam_rooms') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">ห้องสอบ</a>
+                        <a href="{{ url_for('registration.admin_applications') }}" class="block px-3 py-2 text-gray-900 hover:bg-gray-100 rounded-lg">ใบสมัคร</a>
+                    </div>
+                </div>
+            </li>
+            
+              {% elif current_user.role == 'teacher' %}
+              <!-- เมนูจัดการการสอน (Teacher) -->
+              <li>
+                <div class="relative">
+                  <button onclick="toggleDropdown('teacherMenu')" class="p-2 block text-gray-900 hover:bg-pink-50 w-full text-left">
+                    จัดการการสอน
+                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div id="teacherMenu" class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-64 bg-white rounded-xl shadow-xl border border-pink-200">
+                    <div class="p-4 space-y-2">
+                      <a href="{{ url_for('teacher.list_classrooms') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">ห้องเรียนที่ดูแล</a>
+                      <a href="{{ url_for('teacher.grade_management') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">ห้องที่สอน</a>
+                      <a href="{{ url_for('teacher.grade_management') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">บันทึกเกรด</a>
+                      <a href="{{ url_for('subject.list_subjects') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">รายวิชาทั้งหมด</a>
+                      <a href="{{ url_for('teacher.teacher_manage_subjects') }}" class="block px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg">สร้างรายวิชา</a>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <a href="{{ url_for('news.post_news') }}" class="p-2 block text-gray-900 hover:bg-pink-50">โพสต์ข่าวสาร</a>
+              </li>
+              {% elif current_user.role == 'student' %}
+              <!-- เมนูสำหรับนักเรียน (Student) -->
+              <li>
+                <a href="{{ url_for('student.student_home') }}" class="p-2 block text-gray-900 hover:bg-pink-50">หน้าแรกนักเรียน</a>
+              </li>
+              <li>
+                <a href="{{ url_for('news.post_news') }}" class="p-2 block text-gray-900 hover:bg-pink-50">โพสต์ข่าวสาร</a>
+              </li>
+              <li>
+                <a href="{{ url_for('student.student_grades') }}" class="p-2 block text-gray-900 hover:bg-pink-50">ดูเกรดของฉัน</a>
+              </li>
+              {% else %}
+              <!-- เมนูสำหรับผู้ใช้ทั่วไปที่เข้าสู่ระบบแล้ว -->
+              <li>
+                <a href="{{ url_for('index') }}" class="p-2 block text-gray-900 hover:bg-pink-50">หน้าแรก</a>
+              </li>
+              <li>
+                <a href="#" class="p-2 block text-gray-900 hover:bg-pink-50">เกี่ยวกับเรา</a>
+              </li>
+              <li>
+                <a href="#" class="p-2 block text-gray-900 hover:bg-pink-50">ติดต่อ</a>
+              </li>
+              {% endif %}
+            {% endif %}
+          </ul>
         </div>
-        <a href="{{ url_for('auth.logout') }}"
-          class="bg-white hover:bg-pink-50 text-pink-700 px-4 py-2 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md text-sm font-medium">
-          Logout
-        </a>
-        {% else %}
-        <div class="flex items-center space-x-2">
-          <a href="{{ url_for('auth.login') }}"
-            class="bg-white hover:bg-pink-50 text-pink-700 px-4 py-2 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md text-sm font-medium">
-            Login
-          </a>
-          <a href="{{ url_for('registration.register_form') }}"
-            class="bg-pink-100 hover:bg-pink-200 text-pink-700 px-4 py-2 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md text-sm font-medium">
-            สมัครเรียน
-          </a>
+      </aside>
+
+      <!-- Content -->
+      <div class="p-content flex-1 p-4 sm:ml-64 ml-0 min-h-[calc(100vh-80px)] overflow-y-auto">
+        <div class="p-4 border border-gray-100 rounded-lg bg-white">
+          {% block content %}{% endblock %}
         </div>
-        {% endif %}
       </div>
-
-      <!-- Mobile Navigation Toggle -->
-      <div class="md:hidden">
-        <button onclick="toggleMenu()"
-          class="text-white focus:outline-none hover:text-pink-200 transition-colors duration-300">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile Menu -->
-    <div id="mobileMenu" class="hidden md:hidden bg-pink-600 border-t border-pink-700">
-      <div class="px-4 py-4 space-y-3">
-        {% if session.get('user_id') %}
-        <div class="text-sm text-white bg-pink-700 px-3 py-1 rounded-full inline-block">
-          Role: <b>{{ session.get('role')|capitalize }}</b>
-        </div>
-        <a href="{{ url_for('auth.logout') }}"
-          class="block bg-white hover:bg-pink-50 text-pink-700 px-4 py-2 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md text-sm font-medium">
-          Logout
-        </a>
-        {% else %}
-        <div class="space-y-2">
-          <a href="{{ url_for('auth.login') }}"
-            class="block bg-white hover:bg-pink-50 text-pink-700 px-4 py-2 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md text-sm font-medium">
-            Login
-          </a>
-          <a href="{{ url_for('registration.register_form') }}"
-            class="block bg-pink-100 hover:bg-pink-200 text-pink-700 px-4 py-2 rounded-full transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md text-sm font-medium">
-            สมัครเรียน
-          </a>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </nav>
-
-  <!-- Subnav -->
-  <div class="bg-white border-b border-pink-200 shadow-sm">
-    <div class="container mx-auto px-4 py-4">
-      <!-- Desktop Subnav -->
-      <nav class="hidden md:flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 text-sm text-pink-800">
-       <a href="{{ url_for('news.news_feed') }}"
-         class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-         <svg class="w-2 h-2 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                 d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-         </svg>
-         ข่าวสาร
-      </a>
-
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('registration.register_form') }}"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-          </svg>
-          สมัครเรียน
-        </a>
-        <div class="relative">
-          <button onclick="toggleDropdown('adminRegistrationMenu')"
-            class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            การรับสมัคร
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="adminRegistrationMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <a href="{{ url_for('registration.register_form') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                สมัครเรียน
-              </a>
-              <a href="{{ url_for('registration.search_form') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                ค้นหาใบสมัคร
-              </a>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-
-        {% if current_user.is_authenticated %}
-        {% if current_user.role == 'admin' %}
-        <div class="relative">
-          <button onclick="toggleDropdown('adminMenu')"
-            class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m6 4v2m0-6V4" />
-            </svg>
-            จัดการระบบ
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="adminMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-4">
-              <h3 class="text-xs font-semibold text-gray-500 uppercase">การจัดการผู้ใช้</h3>
-              <a href="{{ url_for('admin.create_user') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-                สร้างผู้ใช้
-              </a>
-
-              <h3 class="text-xs font-semibold text-gray-500 uppercase">การจัดการห้องเรียน</h3>
-              <a href="{{ url_for('admin.create_classroom') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                สร้างห้องเรียน
-              </a>
-              <a href="{{ url_for('admin.list_classrooms') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375H9.75" />
-                </svg>
-                จัดการห้องเรียน
-              </a>
-              <a href="{{ url_for('admin.add_student_to_classroom_all') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                เพิ่มนักเรียนเข้าห้อง
-              </a>
-
-              <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">การจัดการวิชา</h3>
-              <a href="{{ url_for('admin.admin_manage_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                จัดการรายวิชา
-              </a>
-              <a href="{{ url_for('subject.list_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10" />
-                </svg>
-                รายวิชาทั้งหมด
-              </a>
-
-              <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">อื่น ๆ</h3>
-              <a href="{{ url_for('admin.academic_settings') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                ตั้งค่าปีการศึกษา
-              </a>
-              <a href="{{ url_for('news.approve_news') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                อนุมัติข่าวสาร
-              </a>
-              <a href="#"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5" />
-                </svg>
-                รายงาน
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div class="relative">
-          <button onclick="toggleDropdown('adminRegistrationMenu')"
-            class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            จัดการการรับสมัคร
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="adminRegistrationMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <a href="{{ url_for('registration.admin_admission_periods') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                ช่วงเวลารับสมัคร
-              </a>
-              <a href="{{ url_for('registration.admin_exam_rooms') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                ห้องสอบ
-              </a>
-              <a href="{{ url_for('registration.admin_applications') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                ใบสมัคร
-              </a>
-            </div>
-          </div>
-        </div>
-        {% elif current_user.role == 'teacher' %}
-        <div class="relative">
-          <button onclick="toggleDropdown('teacherMenu')"
-            class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-            </svg>
-            จัดการการสอน
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="teacherMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-64 sm:w-80 bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <a href="{{ url_for('teacher.list_classrooms') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375H9.75" />
-                </svg>
-                ห้องเรียนที่ดูแล
-              </a>
-              <a href="{{ url_for('teacher.grade_management') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                ห้องที่สอน
-              </a>
-              <a href="{{ url_for('teacher.grade_management') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944" />
-                </svg>
-                บันทึกเกรด
-              </a>
-              <a href="{{ url_for('subject.list_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10" />
-                </svg>
-                รายวิชาทั้งหมด
-              </a>
-              <a href="{{ url_for('teacher.teacher_manage_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                สร้างรายวิชา
-              </a>
-            </div>
-          </div>
-        </div>
-        <a href="{{ url_for('news.post_news') }}"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          โพสต์ข่าวสาร
-        </a>
-        {% elif current_user.role == 'student' %}
-        <a href="{{ url_for('student.student_home') }}"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10" />
-          </svg>
-          หน้าแรกนักเรียน
-        </a>
-        <a href="{{ url_for('news.post_news') }}"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          โพสต์ข่าวสาร
-        </a>
-        <a href="{{ url_for('student.student_grades') }}"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base {% if request.path == url_for('student.student_grades') %}font-bold text-pink-600{% endif %}">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944" />
-          </svg>
-          ดูเกรดของฉัน
-        </a>
-        {% else %}
-        <a href="{{ url_for('index') }}"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10" />
-          </svg>
-          หน้าแรก
-        </a>
-        <a href="#"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          เกี่ยวกับเรา
-        </a>
-        <a href="#"
-          class="flex items-center gap-2 px-4 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm sm:text-base">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          ติดต่อ
-        </a>
-        {% endif %}
-        {% endif %}
-      </nav>
-
-      <!-- Mobile Subnav -->
-      <nav class="md:hidden flex flex-col space-y-4">
-        <a href="{{ url_for('news.news_feed') }}"
-        class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-     
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 16" fill="currentColor" class="w-4 h-4">
-          <path fill-rule="evenodd" d="M10 3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v9a2 2 0 0 0 2 2h8a2 2 0 0 1-2-2V3ZM4 4h4v2H4V4Zm4 3.5H4V9h4V7.5Zm-4 3h4V12H4v-1.5Z" clip-rule="evenodd" />
-          <path d="M13 5h-1.5v6.25a1.25 1.25 0 1 0 2.5 0V6a1 1 0 0 0-1-1Z" />
-        </svg>
-        ข่าวสาร
-     </a>
-     
-
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('registration.register_form') }}"
-        class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-           d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-       </svg>
-       สมัครเรียน
-     </a>
-     
-        <div class="relative">
-          <button onclick="toggleDropdown('mobileAdminRegistrationMenu')"
-            class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-           <!-- ทำให้ไอคอนเล็กลง (16px) -->
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-</svg>
-การรับสมัคร
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-</svg>
-
-          </button>
-          <div id="mobileAdminRegistrationMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-full bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <a href="{{ url_for('registration.register_form') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                สมัครเรียน
-              </a>
-              <a href="{{ url_for('registration.search_form') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                ค้นหาใบสมัคร
-              </a>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-
-        {% if current_user.is_authenticated %}
-        {% if current_user.role == 'admin' %}
-        <div class="relative">
-          <button onclick="toggleDropdown('mobileAdminMenu')"
-            class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m6 4v2m0-6V4" />
-            </svg>
-            จัดการระบบ
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="mobileAdminMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-full bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <h3 class="text-xs font-semibold text-gray-500 uppercase">การจัดการผู้ใช้</h3>
-              <a href="{{ url_for('admin.create_user') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-                สร้างผู้ใช้
-              </a>
-
-              <h3 class="text-xs font-semibold text-gray-500 uppercase">การจัดการห้องเรียน</h3>
-              <a href="{{ url_for('admin.create_classroom') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                สร้างห้องเรียน
-              </a>
-              <a href="{{ url_for('admin.list_classrooms') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375H9.75" />
-                </svg>
-                จัดการห้องเรียน
-              </a>
-              <a href="{{ url_for('admin.add_student_to_classroom_all') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                เพิ่มนักเรียนเข้าห้อง
-              </a>
-
-              <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">การจัดการวิชา</h3>
-              <a href="{{ url_for('admin.admin_manage_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                จัดการรายวิชา
-              </a>
-              <a href="{{ url_for('subject.list_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10" />
-                </svg>
-                รายวิชาทั้งหมด
-              </a>
-
-              <h3 class="text-xs font-semibold text-gray-500 uppercase mt-2">อื่น ๆ</h3>
-              <a href="{{ url_for('admin.academic_settings') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                ตั้งค่าปีการศึกษา
-              </a>
-              <a href="{{ url_for('news.approve_news') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                อนุมัติข่าวสาร
-              </a>
-              <a href="#"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5" />
-                </svg>
-                รายงาน
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div class="relative">
-          <button onclick="toggleDropdown('mobileAdminRegistrationMenu')"
-            class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            จัดการการรับสมัคร
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="mobileAdminRegistrationMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-full bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <a href="{{ url_for('registration.admin_admission_periods') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                ช่วงเวลารับสมัคร
-              </a>
-              <a href="{{ url_for('registration.admin_exam_rooms') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                ห้องสอบ
-              </a>
-              <a href="{{ url_for('registration.admin_applications') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                ใบสมัคร
-              </a>
-            </div>
-          </div>
-        </div>
-        {% elif current_user.role == 'teacher' %}
-        <div class="relative">
-          <button onclick="toggleDropdown('mobileTeacherMenu')"
-            class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-            </svg>
-            จัดการการสอน
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="mobileTeacherMenu"
-            class="dropdown-menu hidden absolute left-0 z-20 mt-2 w-full bg-white rounded-xl shadow-xl border border-pink-200">
-            <div class="p-4 space-y-2">
-              <a href="{{ url_for('teacher.list_classrooms') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375H9.75" />
-                </svg>
-                ห้องเรียนที่ดูแล
-              </a>
-              <a href="{{ url_for('teacher.grade_management') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0h-7.5V18" />
-                </svg>
-                ห้องที่สอน
-              </a>
-              <a href="{{ url_for('teacher.grade_management') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944" />
-                </svg>
-                บันทึกเกรด
-              </a>
-              <a href="{{ url_for('subject.list_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10" />
-                </svg>
-                รายวิชาทั้งหมด
-              </a>
-              <a href="{{ url_for('teacher.teacher_manage_subjects') }}"
-                class="flex items-center gap-2 px-3 py-2 text-gray-900 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-all duration-300 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                สร้างรายวิชา
-              </a>
-            </div>
-          </div>
-        </div>
-        <a href="{{ url_for('news.post_news') }}"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          โพสต์ข่าวสาร
-        </a>
-        {% elif current_user.role == 'student' %}
-        <a href="{{ url_for('student.student_home') }}"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10" />
-          </svg>
-          หน้าแรกนักเรียน
-        </a>
-        <a href="{{ url_for('news.post_news') }}"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          โพสต์ข่าวสาร
-        </a>
-        <a href="{{ url_for('student.student_grades') }}"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full {% if request.path == url_for('student.student_grades') %}font-bold text-pink-600{% endif %}">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944" />
-          </svg>
-          ดูเกรดของฉัน
-        </a>
-        {% else %}
-        <a href="{{ url_for('index') }}"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10" />
-          </svg>
-          หน้าแรก
-        </a>
-        <a href="#"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          เกี่ยวกับเรา
-        </a>
-        <a href="#"
-          class="flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          ติดต่อ
-        </a>
-        {% endif %}
-        {% endif %}
-      </nav>
     </div>
   </div>
+ <script>
+// ฟังก์ชันเดียวสำหรับ toggle เมนูดรอปดาวน์
+function toggleDropdown(id) {
+  const element = document.getElementById(id);
+  element.classList.toggle('hidden');
+}
 
-  <div class="container mx-auto px-4 py-6 flex-grow">
-    {% if request.path not in [url_for('auth.login'), url_for('index'), url_for('news.news_feed'), url_for('registration.register_form'), url_for('registration.search_form'),
-    url_for('teacher.teacher_home'), url_for('student.student_home')] %}
-    <div class="mb-4">
-      <button onclick="goBack()"
-        class="flex items-center gap-2 px-3 py-2 bg-pink-50 rounded-full hover:bg-pink-100 hover:text-pink-600 transition-all duration-300 font-medium text-sm w-full md:w-auto">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        ย้อนกลับ
-      </button>
-    </div>
-    {% endif %}
-
-    {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div
-      class="p-3 mb-4 rounded-lg text-sm font-medium {% if category == 'success' %}bg-green-100 text-green-800 border border-green-200{% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
-      {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </div>
-
-  <footer class="bg-gradient-to-r from-pink-600 to-rose-600 text-white mt-auto shadow-inner">
-    <div class="container mx-auto px-4 py-4 text-center text-sm font-medium">
-      © 2025 School Project. All rights reserved.
-    </div>
-  </footer>
+// ปิดเมนูดรอปดาวน์ทั้งหมดเมื่อคลิกนอกเมนู
+document.addEventListener('click', function(event) {
+  const dropdowns = document.querySelectorAll('.dropdown-menu'); // เลือกทุกเมนูที่มี class นี้
+  dropdowns.forEach(dropdown => {
+    const button = dropdown.previousElementSibling; // สมมติว่าปุ่มอยู่ก่อนเมนูใน HTML
+    if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+});
+</script>
+  {% block scripts %}{% endblock %}
 </body>
 
 </html>

@@ -2,32 +2,28 @@ import os
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-load_dotenv()  # โหลดค่าจาก .env
+load_dotenv()
 
 class Config:
-    SECRET_KEY = 'your_secret_key'
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://username:password@localhost/dbname')
-    # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'database.db')
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    
+    # PostgreSQL Configuration
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 5,           # จำนวน connection ที่เปิดพร้อมกัน
-        'max_overflow': 10,       # จำนวน connection เพิ่มเติมที่ยอมให้เกิน
-        'pool_timeout': 30,       # วินาทีที่รอ connection ว่าง
-        'pool_recycle': 1800,     # รีไซเคิล connection ทุก 30 นาที
+        'pool_size': 5,
+        'max_overflow': 10,
+        'pool_timeout': 30,
+        'pool_recycle': 1800,
     }
-    # AWS S3 Config
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_S3_BUCKET = os.getenv('AWS_S3_BUCKET')
-    AWS_S3_REGION = os.getenv('AWS_S3_REGION')
     
-    # ใช้ S3 แทนโฟลเดอร์อัปโหลด
-    UPLOAD_FOLDER = f"https://{AWS_S3_BUCKET}.s3.{AWS_S3_REGION}.amazonaws.com/uploads/"
+    # Local Storage Config
+    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', '/app/uploads')
+    UPLOADS_URL_PATH = '/uploads/'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'}
 
-    #ด่อนุญาตเฉพาะไฟล์ที่อนุญาต
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-    # Session
+    # Session Configuration
     SESSION_TYPE = 'filesystem'
     SESSION_PERMANENT = False
     SESSION_USE_SIGNER = True
