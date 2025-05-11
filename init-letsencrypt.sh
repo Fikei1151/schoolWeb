@@ -93,7 +93,7 @@ else
 fi
 
 # ใช้ Docker exec เพื่อกำหนดค่า DNS ภายในคอนเทนเนอร์ certbot ก่อนเรียกใช้งาน
-docker-compose run --rm --entrypoint "/bin/sh" certbot -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf && echo 'nameserver 8.8.4.4' >> /etc/resolv.conf && certonly --webroot -w /var/www/certbot $staging_arg --dry-run -v --email $email -d ${domains[0]} -d ${domains[1]} --rsa-key-size $rsa_key_size --agree-tos --no-eff-email --force-renewal" || { 
+docker-compose run --rm --entrypoint "/bin/sh" certbot -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf && echo 'nameserver 8.8.4.4' >> /etc/resolv.conf && /usr/bin/certbot certonly --webroot -w /var/www/certbot $staging_arg --dry-run -v --email $email -d ${domains[0]} -d ${domains[1]} --rsa-key-size $rsa_key_size --agree-tos --no-eff-email --force-renewal" || { 
   echo "เกิดข้อผิดพลาดในการขอใบรับรอง SSL"; 
   echo "ลองตรวจสอบข้อมูลโดเมนและการตั้งค่า DNS";
   exit 1; 
@@ -102,7 +102,7 @@ docker-compose run --rm --entrypoint "/bin/sh" certbot -c "echo 'nameserver 8.8.
 echo "### ทดสอบการขอ certificate สำเร็จ! กำลังขอใบรับรองที่สามารถใช้งานได้จริง..."
 # หลังจากทดสอบสำเร็จ จึงขอใบรับรองจริง (ถ้าไม่ได้อยู่ในโหมด staging)
 if [ $staging = "0" ]; then
-  docker-compose run --rm --entrypoint "/bin/sh" certbot -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf && echo 'nameserver 8.8.4.4' >> /etc/resolv.conf && certonly --webroot -w /var/www/certbot --email $email -d ${domains[0]} -d ${domains[1]} --rsa-key-size $rsa_key_size --agree-tos --no-eff-email --force-renewal" || { 
+  docker-compose run --rm --entrypoint "/bin/sh" certbot -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf && echo 'nameserver 8.8.4.4' >> /etc/resolv.conf && /usr/bin/certbot certonly --webroot -w /var/www/certbot --email $email -d ${domains[0]} -d ${domains[1]} --rsa-key-size $rsa_key_size --agree-tos --no-eff-email --force-renewal" || { 
     echo "เกิดข้อผิดพลาดในการขอใบรับรอง SSL จริง"; 
     exit 1; 
   }
