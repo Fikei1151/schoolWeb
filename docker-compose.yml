@@ -55,27 +55,6 @@ services:
         reservations:
           memory: 256M
 
-  # pgAdmin สำหรับจัดการฐานข้อมูล
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@schoolweb.com
-      PGADMIN_DEFAULT_PASSWORD: schoolwebadmin
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - app-network
-    depends_on:
-      - db
-    deploy:
-      resources:
-        limits:
-          cpus: '0.30'
-          memory: 256M
-
   # Nginx Server
   nginx:
     image: nginx:latest
@@ -119,5 +98,4 @@ networks:
 
 volumes:
   postgres_data:
-  uploads:
-  pgadmin_data: 
+  uploads: 
