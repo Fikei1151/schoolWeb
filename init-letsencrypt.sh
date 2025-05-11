@@ -40,7 +40,7 @@ docker-compose run --rm --entrypoint "\
     -d ${domains[0]} -d ${domains[1]} \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
-    --force-renewal" certbot
+    --force-renewal" mukhtari_certbot
 
 echo "### เสร็จสิ้น! ทำการรีสตาร์ท nginx ..."
 docker-compose restart nginx 

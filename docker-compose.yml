@@ -64,8 +64,8 @@ services:
     depends_on:
       - web
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"   # เปลี่ยนจาก 80 เป็น 8080
+      - "8443:443"  # เปลี่ยนจาก 443 เป็น 8443
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
       - ./static:/app/static
@@ -78,7 +78,7 @@ services:
   # Certbot สำหรับการจัดการ SSL certificates
   certbot:
     image: certbot/certbot:latest
-    container_name: certbot
+    container_name: mukhtari_certbot  # เปลี่ยนชื่อ container เพื่อหลีกเลี่ยงความขัดแย้ง
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/data:/var/www/certbot
